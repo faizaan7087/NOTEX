@@ -3,7 +3,17 @@
  * Centralized Fetch API client for communicating with the Express backend
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+// Normalize API Base URL so it works whether user provides with or without /api
+const getApiBaseUrl = () => {
+  let url = (import.meta.env.VITE_API_URL || '/api').trim();
+  // Remove trailing slash if present
+  if (url.endsWith('/')) {
+    url = url.slice(0, -1);
+  }
+  return url;
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('notex_token');

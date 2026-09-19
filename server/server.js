@@ -43,15 +43,21 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Mount Routes
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/folders', require('./routes/folderRoutes'));
-app.use('/api/notes', require('./routes/noteRoutes'));
-app.use('/api/share', require('./routes/shareRoutes'));
-app.use('/api/xml', require('./routes/xmlRoutes'));
+// Mount Routes (supporting both /api/path and /path)
+const authRouter = require('./routes/authRoutes');
+const folderRouter = require('./routes/folderRoutes');
+const noteRouter = require('./routes/noteRoutes');
+const shareRouter = require('./routes/shareRoutes');
+const xmlRouter = require('./routes/xmlRoutes');
+
+app.use(['/api/auth', '/auth'], authRouter);
+app.use(['/api/folders', '/folders'], folderRouter);
+app.use(['/api/notes', '/notes'], noteRouter);
+app.use(['/api/share', '/share'], shareRouter);
+app.use(['/api/xml', '/xml'], xmlRouter);
 
 // Standalone subjects endpoint
-app.get('/api/subjects', require('./middleware/authMiddleware').protect, require('./controllers/noteController').getSubjects);
+app.get(['/api/subjects', '/subjects'], require('./middleware/authMiddleware').protect, require('./controllers/noteController').getSubjects);
 
 // Root route for direct browser inspection
 app.get('/', (req, res) => {
