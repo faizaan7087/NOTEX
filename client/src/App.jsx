@@ -535,8 +535,8 @@ export function MainApp() {
       <Modal
         isOpen={!!viewingNote}
         onClose={() => setViewingNote(null)}
-        title="Note Details"
-        maxWidth="max-w-3xl"
+        maxWidth="max-w-4xl"
+        hideHeader={true}
       >
         <NoteViewer
           note={viewingNote}
