@@ -35,18 +35,36 @@ const detectLinkType = (url = '', text = '') => {
   return { type: 'web', name: 'Web Link', icon: Globe, color: 'zinc' };
 };
 
+const extractPlainText = (node) => {
+  if (!node) return '';
+  if (typeof node === 'string') return node;
+  if (typeof node === 'number') return String(node);
+  if (Array.isArray(node)) return node.map(extractPlainText).join('');
+  if (node.props && node.props.children) return extractPlainText(node.props.children);
+  return '';
+};
+
 export const MarkdownRenderer = ({ content, attachments = [], className = '' }) => {
   const [copiedLink, setCopiedLink] = useState(null);
 
   const resolveAttachment = (url) => {
     if (!url) return { url: '', isAttachment: false, attachment: null };
     if (url.startsWith('attachment:')) {
-      const attIdOrName = url.replace(/^attachment:/, '').trim();
+      const attIdOrName = decodeURIComponent(url.replace(/^attachment:/, '').trim());
       const match = (attachments || []).find(
-        (a) => a.id === attIdOrName || a.name === attIdOrName || (a.id && a.id.toLowerCase() === attIdOrName.toLowerCase())
+        (a) => a.id === attIdOrName || 
+               a.name === attIdOrName || 
+               (a.id && String(a.id).toLowerCase() === attIdOrName.toLowerCase()) ||
+               (a.name && String(a.name).toLowerCase() === attIdOrName.toLowerCase())
       );
       if (match) {
         return { url: match.data, isAttachment: true, attachment: match };
+      }
+      const partialMatch = (attachments || []).find(
+        (a) => a.name && (a.name.includes(attIdOrName) || attIdOrName.includes(a.name))
+      );
+      if (partialMatch) {
+        return { url: partialMatch.data, isAttachment: true, attachment: partialMatch };
       }
       return { url, isAttachment: true, attachment: null };
     }
@@ -88,19 +106,19 @@ export const MarkdownRenderer = ({ content, attachments = [], className = '' }) 
           a({ href, children, ...props }) {
             const rawHref = href || '';
             const { url: linkUrl, isAttachment, attachment } = resolveAttachment(rawHref);
-            const linkText = Array.isArray(children) ? children.join('') : (children || linkUrl);
-            const info = detectLinkType(linkUrl, String(linkText));
+            const linkText = extractPlainText(children) || linkUrl;
+            const info = detectLinkType(linkUrl, linkText);
             const isCopied = copiedLink === linkUrl;
-            const isBlockLike = String(linkText).includes('🔗') || String(linkText).includes('📄') || String(linkText).length > 25 || isAttachment;
+            const isBlockLike = linkText.includes('🔗') || linkText.includes('📄') || linkText.length > 25 || isAttachment;
+            const cleanText = linkText.replace(/^[🔗📄📎\s]+/, '').trim() || attachment?.name || info.name;
 
             // If link is styled as a block link (contains link emoji or is standalone block)
             if (isBlockLike || info.type === 'ai' || isAttachment) {
-              const cleanText = String(linkText).replace(/^[🔗📄📎\s]+/, '').trim() || attachment?.name || info.name;
               const isAi = info.type === 'ai';
               const isPdf = isAttachment || info.type === 'pdf' || linkUrl.startsWith('data:application/pdf') || linkUrl.endsWith('.pdf');
 
               const handleOpen = (e) => {
-                e.preventDefault();
+                if (e) e.preventDefault();
                 openAttachmentInNewTab(linkUrl, cleanText, attachment?.type);
               };
 
@@ -143,7 +161,7 @@ export const MarkdownRenderer = ({ content, attachments = [], className = '' }) 
                     </span>
 
                     <span className="flex items-center gap-1.5 shrink-0">
-                      {!linkUrl.startsWith('data:') && (
+                      {!linkUrl.startsWith('data:') && !linkUrl.startsWith('attachment:') && (
                         <button
                           type="button"
                           onClick={(e) => handleCopy(linkUrl, e)}
@@ -180,9 +198,9 @@ export const MarkdownRenderer = ({ content, attachments = [], className = '' }) 
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => {
-                  if (linkUrl.startsWith('data:')) {
+                  if (linkUrl.startsWith('data:') || linkUrl.startsWith('attachment:') || isAttachment) {
                     e.preventDefault();
-                    openAttachmentInNewTab(linkUrl, String(linkText));
+                    openAttachmentInNewTab(linkUrl, cleanText, attachment?.type);
                   }
                 }}
                 className="inline-flex items-center gap-1 font-semibold text-zinc-900 underline underline-offset-4 decoration-zinc-400 hover:decoration-black hover:text-black transition-colors cursor-pointer"
