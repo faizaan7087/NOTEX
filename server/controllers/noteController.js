@@ -407,18 +407,25 @@ const syncAllNotesToDrive = async (req, res) => {
     const vaultId = await googleDriveService.getOrCreateNotexVault(authClient);
     await User.findByIdAndUpdate(user._id || user.id, { driveRootFolderId: vaultId });
 
+    // Sort folders so parents are created in Drive before children
+    const sortedFolders = [...folders].sort((a, b) => {
+      if (!a.parentId && b.parentId) return -1;
+      if (a.parentId && !b.parentId) return 1;
+      return 0;
+    });
+
     // Map folder id to drive folder id
     const folderIdMap = {};
-    for (const f of folders) {
-      const parentDriveId = f.parentId && folderIdMap[f.parentId] ? folderIdMap[f.parentId] : vaultId;
+    for (const f of sortedFolders) {
+      const parentDriveId = (f.parentId && folderIdMap[f.parentId]) ? folderIdMap[f.parentId] : vaultId;
       const createdDriveFolderId = await googleDriveService.getOrCreateSubfolder(authClient, parentDriveId, f.name);
       folderIdMap[f._id || f.id] = createdDriveFolderId;
     }
 
-    // Sync all notes
+    // Sync all notes and their document/image attachments
     let syncedCount = 0;
     for (const n of notes) {
-      const targetFolderId = n.folderId && folderIdMap[n.folderId] ? folderIdMap[n.folderId] : vaultId;
+      const targetFolderId = (n.folderId && folderIdMap[n.folderId]) ? folderIdMap[n.folderId] : vaultId;
       await googleDriveService.saveDriveNote(authClient, targetFolderId, n);
       syncedCount++;
     }

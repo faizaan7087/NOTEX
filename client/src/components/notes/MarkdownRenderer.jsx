@@ -20,6 +20,9 @@ const detectLinkType = (url = '', text = '') => {
   const lowerUrl = url.toLowerCase();
   const lowerText = text.toLowerCase();
 
+  if (lowerUrl.includes('drive.google.com') || lowerUrl.includes('docs.google.com')) {
+    return { type: 'drive', name: 'Google Drive Document', icon: Globe, color: 'blue' };
+  }
   if (lowerUrl.includes('chatgpt.com') || lowerUrl.includes('openai.com') || lowerUrl.includes('claude.ai') || lowerText.includes('chatgpt')) {
     return { type: 'ai', name: 'ChatGPT Conversation', icon: Bot, color: 'emerald' };
   }
@@ -58,13 +61,15 @@ export const MarkdownRenderer = ({ content, attachments = [], className = '' }) 
                (a.name && String(a.name).toLowerCase() === attIdOrName.toLowerCase())
       );
       if (match) {
-        return { url: match.data, isAttachment: true, attachment: match };
+        const effectiveUrl = match.driveViewLink || match.data;
+        return { url: effectiveUrl, isAttachment: true, attachment: match };
       }
       const partialMatch = (attachments || []).find(
         (a) => a.name && (a.name.includes(attIdOrName) || attIdOrName.includes(a.name))
       );
       if (partialMatch) {
-        return { url: partialMatch.data, isAttachment: true, attachment: partialMatch };
+        const effectiveUrl = partialMatch.driveViewLink || partialMatch.data;
+        return { url: effectiveUrl, isAttachment: true, attachment: partialMatch };
       }
       return { url, isAttachment: true, attachment: null };
     }

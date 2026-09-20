@@ -65,7 +65,8 @@ export const NoteViewer = ({
   };
 
   const handleOpenInNewTab = (att) => {
-    openAttachmentInNewTab(att.data, att.name, att.type);
+    const targetUrl = att.driveViewLink || att.data;
+    openAttachmentInNewTab(targetUrl, att.name, att.type);
   };
 
   const createdDate = new Date(note.createdAt || Date.now()).toLocaleString('en-US', {
@@ -380,8 +381,15 @@ export const NoteViewer = ({
                         <p className="text-xs font-semibold text-zinc-900 truncate" title={doc.name}>
                           {doc.name}
                         </p>
-                        <p className="text-[10px] text-zinc-400 font-mono">
-                          {formatFileSize(doc.size)} • {isPdf ? 'PDF Document' : 'Attachment'}
+                        <p className="text-[10px] text-zinc-400 font-mono flex items-center gap-1.5 flex-wrap">
+                          <span>{formatFileSize(doc.size)}</span>
+                          <span>•</span>
+                          <span>{isPdf ? 'PDF Document' : doc.name?.endsWith('.docx') ? 'Word Document' : 'Attachment'}</span>
+                          {doc.driveViewLink && (
+                            <span className="text-[9px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded font-bold border border-emerald-200">
+                              Drive
+                            </span>
+                          )}
                         </p>
                       </div>
                     </div>
