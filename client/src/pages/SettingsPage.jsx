@@ -242,8 +242,9 @@ export const SettingsPage = ({ onNavigate }) => {
 
               {/* Info Alert */}
               <div className="p-4 rounded-2xl bg-zinc-100/80 border border-zinc-200 text-xs text-zinc-600 leading-relaxed">
-                <p className="font-semibold text-zinc-900 mb-1">
-                  💡 How Google Drive Sync Works in NOTEX
+                <p className="font-semibold text-zinc-900 mb-1 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-zinc-700" />
+                  <span>How Google Drive Sync Works in NOTEX</span>
                 </p>
                 Every folder, subfolder, and note you create is mapped to an isolated <code className="font-mono text-[11px] bg-white px-1.5 py-0.5 rounded border border-zinc-200">NOTEX_Vault</code> folder in your personal Google Drive. When you edit a note or delete a folder, changes are automatically propagated to your Google Drive in the background.
               </div>
@@ -296,7 +297,7 @@ export const SettingsPage = ({ onNavigate }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
                   label="Full Name"
-                  placeholder="Mohammed Faizaan Khan"
+                  placeholder="Alex Johnson"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required

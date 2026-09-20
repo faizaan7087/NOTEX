@@ -51,7 +51,7 @@ async function runTests() {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' }
   }, {
-    name: 'Faizaan Khan',
+    name: 'Demo Student',
     email: emailA,
     password: 'securepassword123',
     college: 'University Institute of Technology',

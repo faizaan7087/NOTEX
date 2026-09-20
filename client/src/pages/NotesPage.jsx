@@ -6,12 +6,15 @@ import { NoteList } from '../components/notes/NoteList';
 import { FolderExplorer } from '../components/folders/FolderExplorer';
 import { Button } from '../components/ui/button';
 import { AnimatedTabs } from '../components/ui/AnimatedTabs';
+import { useToast } from '../context/ToastContext';
 import { 
   Plus, 
   FolderTree, 
   LayoutGrid, 
   Share2, 
-  DownloadCloud
+  DownloadCloud,
+  Bot,
+  Send
 } from 'lucide-react';
 
 export const NotesPage = ({
@@ -26,6 +29,7 @@ export const NotesPage = ({
   onCreateNoteInFolder,
   onShareFolder,
   onOpenImportShared,
+  onOpenBookmarkChat,
   loading = false,
   searchQuery,
   onSearchChange,
@@ -43,13 +47,39 @@ export const NotesPage = ({
   onNavigate,
   onClearFilters
 }) => {
+  const toast = useToast();
   const [viewMode, setViewMode] = useState('folders'); // 'folders' | 'grid'
+  const [showGptOnly, setShowGptOnly] = useState(false);
 
   const isSearching = !!searchQuery.trim();
 
+  // Filter notes by ChatGPT links if toggle is active
+  const displayedNotes = showGptOnly
+    ? notes.filter(n => !!n.chatGptUrl)
+    : notes;
+
+  const gptLinksCount = notes.filter(n => !!n.chatGptUrl).length;
+
+  const handleShareWhatsAppLinks = () => {
+    const gptNotes = notes.filter(n => !!n.chatGptUrl);
+    if (gptNotes.length === 0) {
+      toast.error('No ChatGPT links saved yet to share.');
+      return;
+    }
+    const subjectName = selectedSubject && selectedSubject !== 'all' ? selectedSubject : 'Study Notes';
+    let message = `*NOTEX — ${subjectName} ChatGPT Study Links*\n\n`;
+    gptNotes.forEach((n, idx) => {
+      message += `${idx + 1}. *${n.title}* (${n.subject})\n🔗 ${n.chatGptUrl}\n\n`;
+    });
+    message += `_Organized in NOTEX Vault_`;
+    
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
   const viewTabs = [
     { id: 'folders', label: 'Folders', icon: FolderTree },
-    { id: 'grid', label: 'All Notes', icon: LayoutGrid, count: notes.length }
+    { id: 'grid', label: 'All Notes', icon: LayoutGrid, count: displayedNotes.length }
   ];
 
   return (
@@ -62,7 +92,7 @@ export const NotesPage = ({
             Notes &amp; Folders
           </h1>
           <p className="text-xs text-zinc-500 mt-0.5">
-            Organize course units and lecture notes synced to Google Drive
+            Organize course units, formulas, and ChatGPT answers in your vault
           </p>
         </div>
 
@@ -73,6 +103,32 @@ export const NotesPage = ({
             activeTab={isSearching ? 'grid' : viewMode}
             onChange={(tabId) => setViewMode(tabId)}
           />
+
+          {gptLinksCount > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleShareWhatsAppLinks}
+              className="bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100 transition-all shadow-2xs font-semibold"
+              title="Share all ChatGPT links to WhatsApp"
+            >
+              <Send className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Share to WhatsApp</span>
+            </Button>
+          )}
+
+          {onOpenBookmarkChat && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onOpenBookmarkChat}
+              className="bg-white/90 border-emerald-200 text-emerald-900 hover:bg-emerald-50 hover:border-emerald-300 transition-all shadow-2xs font-semibold"
+              title="Quick save a ChatGPT share link"
+            >
+              <Bot className="w-3.5 h-3.5 text-emerald-600" />
+              <span>+ Bookmark Link</span>
+            </Button>
+          )}
 
           {onShareFolder && (
             <Button
@@ -120,7 +176,9 @@ export const NotesPage = ({
         onSortChange={onSortChange}
         showFavoritesOnly={showFavoritesOnly}
         onToggleFavoritesOnly={onToggleFavoritesOnly}
-        totalResults={notes.length}
+        showGptOnly={showGptOnly}
+        onToggleGptOnly={() => setShowGptOnly(!showGptOnly)}
+        totalResults={displayedNotes.length}
       />
 
       {/* Main View with smooth transition */}
@@ -135,7 +193,7 @@ export const NotesPage = ({
           >
             <FolderExplorer
               folders={folders}
-              notes={notes}
+              notes={displayedNotes}
               currentFolderId={currentFolderId}
               onNavigateFolder={onNavigateFolder}
               onCreateSubfolder={onCreateSubfolder}
@@ -165,12 +223,12 @@ export const NotesPage = ({
               subjects={subjects}
               selectedSubject={selectedSubject}
               onSelectSubject={onSelectSubject}
-              totalNotes={notes.length}
+              totalNotes={displayedNotes.length}
             />
 
             {/* Notes Grid List */}
             <NoteList
-              notes={notes}
+              notes={displayedNotes}
               loading={loading}
               onView={onViewNote}
               onEdit={onEditNote}

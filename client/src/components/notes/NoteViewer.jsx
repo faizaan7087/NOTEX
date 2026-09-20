@@ -16,9 +16,14 @@ import {
   Download,
   ExternalLink,
   Eye,
-  Maximize2
+  Maximize2,
+  Bot,
+  Link as LinkIcon,
+  Globe
 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
+import { MarkdownRenderer } from './MarkdownRenderer';
+import { openAttachmentInNewTab } from '../../utils/fileHelper';
 
 const formatFileSize = (bytes) => {
   if (!bytes || bytes === 0) return '0 B';
@@ -60,19 +65,7 @@ export const NoteViewer = ({
   };
 
   const handleOpenInNewTab = (att) => {
-    // Open Base64 Data URL or Blob in a new browser tab
-    const win = window.open();
-    if (win) {
-      if (att.type === 'application/pdf') {
-        win.document.write(
-          `<iframe src="${att.data}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`
-        );
-      } else {
-        win.document.write(`<img src="${att.data}" style="max-width:100%; display:block; margin:auto;" />`);
-      }
-    } else {
-      toast.error('Pop-up blocked. Please allow popups for this site.');
-    }
+    openAttachmentInNewTab(att.data, att.name, att.type);
   };
 
   const createdDate = new Date(note.createdAt || Date.now()).toLocaleString('en-US', {
@@ -86,11 +79,14 @@ export const NoteViewer = ({
   });
 
   const attachments = Array.isArray(note.attachments) ? note.attachments : [];
+  const linkAttachments = attachments.filter(
+    (a) => a.type?.startsWith('link') || a.type === 'link/chatgpt' || a.type === 'link/web'
+  );
   const imageAttachments = attachments.filter(
-    (a) => a.type?.startsWith('image/') || a.data?.startsWith('data:image/')
+    (a) => !a.type?.startsWith('link') && (a.type?.startsWith('image/') || a.data?.startsWith('data:image/'))
   );
   const fileAttachments = attachments.filter(
-    (a) => !(a.type?.startsWith('image/') || a.data?.startsWith('data:image/'))
+    (a) => !a.type?.startsWith('link') && !(a.type?.startsWith('image/') || a.data?.startsWith('data:image/'))
   );
 
   return (
@@ -112,7 +108,7 @@ export const NoteViewer = ({
               {attachments.length > 0 && (
                 <span className="flex items-center gap-1 text-xs text-zinc-700 bg-zinc-100 px-2.5 py-1 rounded-full border border-zinc-200 font-medium">
                   <Paperclip className="w-3.5 h-3.5 text-zinc-500" />
-                  <span>{attachments.length} {attachments.length === 1 ? 'file' : 'files'}</span>
+                  <span>{attachments.length} {attachments.length === 1 ? 'item' : 'items'}</span>
                 </span>
               )}
             </div>
@@ -195,18 +191,105 @@ export const NoteViewer = ({
           </div>
         </div>
 
-        {/* Note Content Body */}
+        {/* Linked ChatGPT Thread Banner */}
+        {note.chatGptUrl && (
+          <div className="p-4 rounded-2xl bg-emerald-50/90 border border-emerald-200 flex items-center justify-between gap-3 shadow-2xs">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <Bot className="w-5 h-5" />
+              </div>
+              <div className="truncate">
+                <p className="text-xs font-bold text-emerald-950 truncate">
+                  ChatGPT Shared Question &amp; Answer Thread
+                </p>
+                <p className="text-[11px] text-emerald-700 font-mono truncate">
+                  {note.chatGptUrl}
+                </p>
+              </div>
+            </div>
+            <a
+              href={note.chatGptUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors shrink-0"
+            >
+              <span>Open Full Thread</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
+        )}
+
+        {/* Note Content Body with Rich Markdown & Inline Elements */}
         {note.content && note.content.trim() ? (
-          <div className="rounded-2xl bg-zinc-50 border border-zinc-200 p-6 shadow-sm">
-            <p className="text-sm sm:text-base text-zinc-800 leading-relaxed font-sans whitespace-pre-wrap selection:bg-black selection:text-white">
-              {note.content}
-            </p>
+          <div className="rounded-2xl bg-zinc-50/80 border border-zinc-200 p-6 shadow-xs">
+            <MarkdownRenderer content={note.content} attachments={note.attachments || []} />
           </div>
         ) : attachments.length === 0 ? (
           <div className="rounded-2xl bg-zinc-50 border border-dashed border-zinc-200 p-5 text-center text-xs text-zinc-400 italic">
             No text content provided.
           </div>
         ) : null}
+
+        {/* Linked Resources & Web Blocks */}
+        {linkAttachments.length > 0 && (
+          <div className="space-y-3 pt-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-zinc-700">
+              Attached Link Blocks &amp; References ({linkAttachments.length})
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {linkAttachments.map((link) => {
+                const isGpt = link.type === 'link/chatgpt' || link.data?.includes('chatgpt.com') || link.data?.includes('openai.com');
+
+                return (
+                  <div
+                    key={link.id}
+                    className={`flex items-center justify-between p-3.5 rounded-2xl border shadow-xs transition-all ${
+                      isGpt
+                        ? 'bg-emerald-50/80 border-emerald-200 hover:border-emerald-300'
+                        : 'bg-white border-zinc-200 hover:border-zinc-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0 pr-2">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                        isGpt 
+                          ? 'bg-emerald-600 text-white shadow-xs' 
+                          : 'bg-zinc-900 text-white'
+                      }`}>
+                        {isGpt ? <Bot className="w-5 h-5" /> : <Globe className="w-5 h-5" />}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-zinc-950 truncate" title={link.name}>
+                          {link.name}
+                        </p>
+                        <p className={`text-[11px] font-mono truncate ${
+                          isGpt ? 'text-emerald-700' : 'text-zinc-500'
+                        }`}>
+                          {link.data}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <a
+                        href={link.data}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold shadow-2xs transition-colors ${
+                          isGpt
+                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                            : 'bg-zinc-900 hover:bg-black text-white'
+                        }`}
+                      >
+                        <span>Open</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Image Attachments Gallery */}
         {imageAttachments.length > 0 && (
@@ -250,8 +333,15 @@ export const NoteViewer = ({
 
                     <div className="flex items-center gap-1">
                       <button
+                        onClick={() => handleOpenInNewTab(img)}
+                        className="p-1.5 text-zinc-500 hover:text-black hover:bg-zinc-100 rounded-lg transition-colors cursor-pointer"
+                        title="Open Image in New Tab"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </button>
+                      <button
                         onClick={() => handleDownloadAttachment(img)}
-                        className="p-1.5 text-zinc-500 hover:text-black hover:bg-zinc-100 rounded-lg transition-colors"
+                        className="p-1.5 text-zinc-500 hover:text-black hover:bg-zinc-100 rounded-lg transition-colors cursor-pointer"
                         title="Download Image"
                       >
                         <Download className="w-4 h-4" />
@@ -361,15 +451,25 @@ export const NoteViewer = ({
                 className="max-h-[75vh] w-auto object-contain"
               />
             </div>
-            <div className="flex items-center justify-between">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleDownloadAttachment(previewImage)}
-              >
-                <Download className="w-4 h-4 mr-1.5" />
-                <span>Download Original Image</span>
-              </Button>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleOpenInNewTab(previewImage)}
+                >
+                  <ExternalLink className="w-4 h-4 mr-1.5" />
+                  <span>Open in New Tab</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDownloadAttachment(previewImage)}
+                >
+                  <Download className="w-4 h-4 mr-1.5" />
+                  <span>Download</span>
+                </Button>
+              </div>
               <Button
                 variant="default"
                 size="sm"

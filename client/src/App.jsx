@@ -30,6 +30,7 @@ import { DeleteModal } from './components/notes/DeleteModal';
 import { CreateFolderModal } from './components/folders/CreateFolderModal';
 import { ShareFolderModal } from './components/folders/ShareFolderModal';
 import { ImportSharedModal } from './components/folders/ImportSharedModal';
+import { BookmarkChatModal } from './components/notes/BookmarkChatModal';
 
 export function MainApp() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
@@ -62,6 +63,7 @@ export function MainApp() {
   const [xmlModalOpen, setXmlModalOpen] = useState(false);
   const [xmlTargetNote, setXmlTargetNote] = useState(null);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const [bookmarkChatModalOpen, setBookmarkChatModalOpen] = useState(false);
 
   // Folder Modals
   const [folderModalOpen, setFolderModalOpen] = useState(false);
@@ -379,11 +381,12 @@ export function MainApp() {
       {/* Ambient Grid & Lighting Background */}
       <BackgroundGrid />
 
-      {/* Top Navbar */}
+      {/* Top Floating Navbar (Aceternity UI) */}
       <Navbar
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         activePage={activePage}
         navigateTo={navigateTo}
+        onOpenSearch={() => setSearchModalOpen(true)}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
       />
@@ -414,8 +417,8 @@ export function MainApp() {
         />
 
         {/* Main Content Area */}
-        <main className={`flex-1 transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'lg:pl-[72px]' : 'lg:pl-64'} flex flex-col justify-between relative z-10`}>
-          <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className={`flex-1 transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'lg:pl-[96px]' : 'lg:pl-[288px]'} flex flex-col justify-between relative z-10`}>
+          <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 pb-12">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activePage}
@@ -443,6 +446,7 @@ export function MainApp() {
                     }}
                     onShareFolder={handleOpenShareFolder}
                     onOpenImportShared={() => handleOpenImportShared()}
+                    onOpenBookmarkChat={() => setBookmarkChatModalOpen(true)}
                   />
                 )}
 
@@ -458,6 +462,7 @@ export function MainApp() {
                     onDeleteFolder={handleDeleteFolder}
                     onShareFolder={handleOpenShareFolder}
                     onOpenImportShared={() => handleOpenImportShared()}
+                    onOpenBookmarkChat={() => setBookmarkChatModalOpen(true)}
                     onCreateNoteInFolder={handleCreateNoteInFolder}
                     loading={loading}
                     searchQuery={searchQuery}
@@ -610,6 +615,17 @@ export function MainApp() {
         note={deletingNote}
         onConfirm={handleConfirmDelete}
         loading={actionLoading}
+      />
+
+      {/* Bookmark ChatGPT Link Modal */}
+      <BookmarkChatModal
+        isOpen={bookmarkChatModalOpen}
+        onClose={() => setBookmarkChatModalOpen(false)}
+        onSave={handleSaveNote}
+        folders={folders}
+        subjects={subjects}
+        currentFolderId={currentFolderId}
+        initialSubject={selectedSubject !== 'all' ? selectedSubject : ''}
       />
     </div>
   );

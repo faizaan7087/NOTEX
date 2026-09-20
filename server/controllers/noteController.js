@@ -96,7 +96,7 @@ const getNoteById = async (req, res) => {
 // @access  Private
 const createNote = async (req, res) => {
   try {
-    const { title, subject, content, tags, color, isFavorite, attachments, folderId } = req.body;
+    const { title, subject, content, tags, color, isFavorite, attachments, folderId, chatGptUrl } = req.body;
 
     // Validation
     if (!title || !title.trim()) {
@@ -130,6 +130,7 @@ const createNote = async (req, res) => {
       tags: processedTags,
       color: color || 'indigo',
       isFavorite: Boolean(isFavorite),
+      chatGptUrl: chatGptUrl ? String(chatGptUrl).trim() : '',
       attachments: Array.isArray(attachments) ? attachments : []
     });
 
@@ -168,7 +169,7 @@ const createNote = async (req, res) => {
 // @access  Private
 const updateNote = async (req, res) => {
   try {
-    const { title, subject, content, tags, color, isFavorite, attachments, folderId } = req.body;
+    const { title, subject, content, tags, color, isFavorite, attachments, folderId, chatGptUrl } = req.body;
 
     let note = await Note.findById(req.params.id);
 
@@ -204,6 +205,7 @@ const updateNote = async (req, res) => {
     if (processedTags !== undefined) updateData.tags = processedTags;
     if (color !== undefined) updateData.color = color;
     if (isFavorite !== undefined) updateData.isFavorite = Boolean(isFavorite);
+    if (chatGptUrl !== undefined) updateData.chatGptUrl = String(chatGptUrl).trim();
     if (attachments !== undefined) updateData.attachments = Array.isArray(attachments) ? attachments : [];
     if (folderId !== undefined) updateData.folderId = folderId || null;
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { GooeyInput } from '../ui/GooeyInput';
-import { ArrowUpDown, Star } from 'lucide-react';
+import { ArrowUpDown, Star, Bot } from 'lucide-react';
 
 export const SearchBar = ({
   searchQuery,
@@ -10,6 +10,8 @@ export const SearchBar = ({
   onSortChange,
   showFavoritesOnly,
   onToggleFavoritesOnly,
+  showGptOnly,
+  onToggleGptOnly,
   totalResults
 }) => {
   return (
@@ -24,7 +26,25 @@ export const SearchBar = ({
       </div>
 
       {/* Sort & Filter Controls */}
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
+        {/* ChatGPT filter button */}
+        {onToggleGptOnly && (
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.96 }}
+            onClick={onToggleGptOnly}
+            className={`flex items-center gap-1.5 h-11 px-3.5 rounded-2xl text-xs font-semibold border transition-all shadow-2xs ${
+              showGptOnly
+                ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                : 'bg-white/90 text-zinc-700 border-zinc-200/90 hover:text-emerald-700 hover:border-emerald-300'
+            }`}
+            title="Filter notes with saved ChatGPT links"
+          >
+            <Bot className={`w-3.5 h-3.5 ${showGptOnly ? 'text-white' : 'text-emerald-600'}`} />
+            <span>ChatGPT Links</span>
+          </motion.button>
+        )}
+
         {/* Starred filter button */}
         <motion.button
           whileHover={{ scale: 1.02 }}

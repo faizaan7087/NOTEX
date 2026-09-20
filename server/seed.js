@@ -98,7 +98,7 @@ async function seed() {
   let demoUser = await User.findOne({ email: 'student@notex.edu' });
   if (!demoUser) {
     demoUser = await User.create({
-      name: 'Faizaan Khan',
+      name: 'Demo Student',
       email: 'student@notex.edu',
       password: 'password123',
       college: 'University Institute of Technology',

@@ -8,10 +8,13 @@ import {
   Eye, 
   FileCode2, 
   Star, 
-  Clock,
-  Paperclip,
-  FileText,
-  Image as ImageIcon
+  Clock, 
+  Paperclip, 
+  FileText, 
+  Image as ImageIcon,
+  Bot,
+  ExternalLink,
+  Link as LinkIcon
 } from 'lucide-react';
 
 export const NoteCard = ({
@@ -30,11 +33,14 @@ export const NoteCard = ({
   });
 
   const attachmentsCount = Array.isArray(note.attachments) ? note.attachments.length : 0;
+  const hasLinks = note.attachments?.some(
+    (a) => a.type?.startsWith('link') || a.type === 'link/chatgpt' || a.type === 'link/web'
+  );
   const hasImages = note.attachments?.some(
-    (a) => a.type?.startsWith('image/') || a.data?.startsWith('data:image/')
+    (a) => !a.type?.startsWith('link') && (a.type?.startsWith('image/') || a.data?.startsWith('data:image/'))
   );
   const hasPdfs = note.attachments?.some(
-    (a) => a.type === 'application/pdf' || a.name?.toLowerCase().endsWith('.pdf')
+    (a) => !a.type?.startsWith('link') && (a.type === 'application/pdf' || a.name?.toLowerCase().endsWith('.pdf'))
   );
 
   const excerpt = note.content && note.content.trim()
@@ -42,7 +48,7 @@ export const NoteCard = ({
       ? note.content.substring(0, 150) + '...'
       : note.content
     : attachmentsCount > 0
-      ? `Attached: ${attachmentsCount} study material${attachmentsCount === 1 ? '' : 's'} (${hasImages ? 'Images/Diagrams' : ''}${hasImages && hasPdfs ? ' & ' : ''}${hasPdfs ? 'PDF Documents' : ''})`
+      ? `Attached: ${attachmentsCount} study material${attachmentsCount === 1 ? '' : 's'} (${hasLinks ? 'Links' : ''}${hasLinks && (hasImages || hasPdfs) ? ', ' : ''}${hasImages ? 'Images' : ''}${hasImages && hasPdfs ? ' & ' : ''}${hasPdfs ? 'PDFs' : ''})`
       : 'No text description provided.';
 
   const handleStarClick = (e) => {
@@ -85,14 +91,22 @@ export const NoteCard = ({
               {note.subject}
             </Badge>
 
+            {note.chatGptUrl && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                <Bot className="w-3 h-3 text-emerald-600" />
+                <span>ChatGPT</span>
+              </span>
+            )}
+
             {attachmentsCount > 0 && (
               <span 
                 className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-700 bg-zinc-100 px-2 py-0.5 rounded-full border border-zinc-200"
                 title={`${attachmentsCount} attachment(s)`}
               >
+                {hasLinks && <LinkIcon className="w-3 h-3 text-emerald-600" />}
                 {hasImages && <ImageIcon className="w-3 h-3 text-zinc-600" />}
                 {hasPdfs && <FileText className="w-3 h-3 text-rose-600" />}
-                {!hasImages && !hasPdfs && <Paperclip className="w-3 h-3 text-zinc-500" />}
+                {!hasLinks && !hasImages && !hasPdfs && <Paperclip className="w-3 h-3 text-zinc-500" />}
                 <span>{attachmentsCount}</span>
               </span>
             )}
@@ -117,6 +131,24 @@ export const NoteCard = ({
         <h4 className="text-base font-bold text-zinc-950 group-hover:text-black transition-colors font-display line-clamp-1 mb-2">
           {note.title}
         </h4>
+
+        {/* Direct ChatGPT Link Button */}
+        {note.chatGptUrl && (
+          <a
+            href={note.chatGptUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="flex items-center justify-between w-full px-3 py-1.5 rounded-xl bg-emerald-50/90 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 text-xs font-semibold transition-all group/btn shadow-2xs mb-2.5"
+            title="Open ChatGPT shared answer thread in new tab"
+          >
+            <span className="flex items-center gap-1.5 truncate">
+              <Bot className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span className="truncate">Open ChatGPT Thread</span>
+            </span>
+            <ExternalLink className="w-3.5 h-3.5 text-emerald-600 group-hover/btn:translate-x-0.5 transition-transform shrink-0" />
+          </a>
+        )}
 
         {/* Content Excerpt */}
         <p className="text-xs text-zinc-600 leading-relaxed line-clamp-3 mb-4 font-sans whitespace-pre-line">

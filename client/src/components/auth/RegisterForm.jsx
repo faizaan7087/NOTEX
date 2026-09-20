@@ -120,7 +120,7 @@ export const RegisterForm = ({ onSwitchToLogin, onToggleMode }) => {
   });
 
   const handleQuickDemoFill = () => {
-    setName('Faizaan Khan');
+    setName('Demo Student');
     setEmail(`student_${Math.floor(Math.random() * 900 + 100)}@college.edu`);
     setPassword('password123');
     setCollege('University Institute of Technology');
@@ -197,7 +197,7 @@ export const RegisterForm = ({ onSwitchToLogin, onToggleMode }) => {
             label="Full Name"
             type="text"
             icon={User}
-            placeholder="Faizaan Khan"
+            placeholder="Alex Johnson"
             value={name}
             onChange={(e) => {
               setName(e.target.value);

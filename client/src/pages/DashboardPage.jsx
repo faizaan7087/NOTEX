@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { NoteCard } from '../components/notes/NoteCard';
 import { Button } from '../components/ui/button';
 import { AnimatedCounter } from '../components/ui/AnimatedCounter';
-import { Meteors } from '../components/ui/Meteors';
+import { Spotlight } from '../components/ui/SpotlightNew';
 import { 
   BookOpen, 
   Layers, 
@@ -15,11 +15,12 @@ import {
   DownloadCloud,
   Folder,
   Sparkles,
-  Flame,
   Clock,
   HardDrive,
   CheckCircle2,
-  FileCode2
+  FileCode2,
+  GraduationCap,
+  FolderPlus
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -49,7 +50,8 @@ export const DashboardPage = ({
   onNavigate,
   onNavigateFolder,
   onShareFolder,
-  onOpenImportShared
+  onOpenImportShared,
+  onOpenBookmarkChat
 }) => {
   const { user } = useAuth();
   const firstName = user?.name ? user.name.split(' ')[0] : 'Student';
@@ -72,63 +74,94 @@ export const DashboardPage = ({
   return (
     <div className="space-y-8 animate-in fade-in duration-300 pb-20">
       
-      {/* 1. Sleek Compact Hero Banner with Meteors */}
+      {/* 1. Aceternity Spotlight Hero Card */}
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
-        className="relative p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-zinc-950 via-zinc-900 to-black text-white shadow-xl border border-white/10 overflow-hidden flex flex-col justify-between"
+        className="relative rounded-3xl bg-zinc-950 text-white shadow-2xl border border-zinc-800/80 p-6 sm:p-8 lg:p-10 overflow-hidden"
       >
-        {/* Aceternity Meteors Effect */}
-        <Meteors number={12} />
+        {/* Aceternity Spotlight (New) Dual Dynamic Lighting Beams */}
+        <Spotlight
+          translateY={-320}
+          width={540}
+          height={1200}
+          smallWidth={240}
+          duration={7}
+          xOffset={70}
+        />
 
-        {/* Top Pill Badges */}
-        <div className="relative z-10 flex items-center justify-between gap-2 flex-wrap mb-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold text-zinc-200">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>Academic Workspace</span>
+        {/* Ambient Subtle Grid Mesh overlay */}
+        <div 
+          className="absolute inset-0 opacity-[0.07] pointer-events-none"
+          style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.8) 1px, transparent 0)`,
+            backgroundSize: '24px 24px'
+          }}
+        />
+
+        <div className="relative z-10 flex flex-col justify-between h-full space-y-6">
+          {/* Top Pill Badges */}
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-xs font-semibold text-zinc-200 shadow-2xs">
+              <GraduationCap className="w-3.5 h-3.5 text-zinc-300" />
+              <span>{user?.college || 'Academic Knowledge Vault'}</span>
+            </div>
+
+            <div className="flex items-center gap-2 text-xs font-mono text-zinc-400 bg-white/5 px-2.5 py-1 rounded-full border border-white/5">
+              <Clock className="w-3.5 h-3.5 text-zinc-400" />
+              <span>{currentTime}</span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-mono text-zinc-400">
-            <Clock className="w-3.5 h-3.5 text-zinc-400" />
-            <span>{currentTime}</span>
+          {/* Hero Welcome Title & Subtitle */}
+          <div className="space-y-2 max-w-2xl">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold font-display tracking-tight text-white leading-tight">
+              Welcome back, {firstName}
+            </h1>
+            <p className="text-xs sm:text-sm text-zinc-400 font-normal leading-relaxed">
+              Store notes like a variable. Your academic units, formula cheatsheets, and attachments are organized and ready.
+            </p>
           </div>
-        </div>
 
-        {/* Hero Title & Description */}
-        <div className="relative z-10 my-2 space-y-1">
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold font-display tracking-tight text-white">
-            Welcome back, {firstName} ⚡
-          </h1>
-          <p className="text-xs text-zinc-400 max-w-xl leading-relaxed">
-            Store notes like a variable. Your unit summaries, formulas, and attachments are organized and structured.
-          </p>
-        </div>
-
-        {/* Bottom Actions Row */}
-        <div className="relative z-10 flex items-center gap-3 pt-2 flex-wrap">
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => onNavigate('new-note')}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-black text-xs font-bold shadow-md hover:bg-zinc-100 transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Create New Note</span>
-          </motion.button>
-
-          {onOpenImportShared && (
+          {/* Bottom Action Controls */}
+          <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap pt-2">
             <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={onOpenImportShared}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/15 text-xs font-semibold backdrop-blur-md transition-colors"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => onNavigate('new-note')}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-zinc-950 text-xs font-bold shadow-md hover:bg-zinc-100 transition-all cursor-pointer"
             >
-              <DownloadCloud className="w-3.5 h-3.5 text-zinc-300" />
-              <span>Import Repo Code</span>
+              <Plus className="w-3.5 h-3.5 text-zinc-950" />
+              <span>Create Note</span>
             </motion.button>
-          )}
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => onNavigate('notes')}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/15 text-xs font-semibold backdrop-blur-md transition-all cursor-pointer"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-zinc-300" />
+              <span>Browse All Notes</span>
+            </motion.button>
+
+            {onOpenImportShared && (
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={onOpenImportShared}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/15 text-xs font-semibold backdrop-blur-md transition-all cursor-pointer"
+              >
+                <DownloadCloud className="w-3.5 h-3.5 text-zinc-300" />
+                <span>Import Repo</span>
+              </motion.button>
+            )}
+          </div>
         </div>
+
+        {/* Specular Bottom Accent Border */}
+        <span className="absolute inset-x-0 w-3/4 mx-auto -bottom-px bg-gradient-to-r from-transparent via-white/20 to-transparent h-px pointer-events-none" />
       </motion.div>
 
       {/* 2. Sleek KPI Metrics Row */}

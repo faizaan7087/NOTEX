@@ -166,7 +166,7 @@ export const ProfilePage = ({ onCompleteOnboarding, isFirstTime = false }) => {
               label="Full Name *"
               type="text"
               icon={User}
-              placeholder="e.g. Faizaan Khan"
+              placeholder="e.g. Alex Johnson"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required

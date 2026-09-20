@@ -97,14 +97,14 @@ export const CreateFolderModal = ({
             onChange={(e) => setParentId(e.target.value)}
             className="w-full h-11 px-3.5 text-sm bg-white/80 border border-zinc-300 rounded-xl text-zinc-900 focus:outline-none focus:border-black shadow-2xs font-sans"
           >
-            <option value="">📁 Root (Top-Level Subject Folder)</option>
+            <option value="">Root (Top-Level Subject Folder)</option>
             {folders
               .filter(f => !initialFolder || (f._id !== initialFolder._id && f.id !== initialFolder.id))
               .map((f) => {
                 const isSub = !!f.parentId;
                 return (
                   <option key={f._id || f.id} value={f._id || f.id}>
-                    {isSub ? '   └── 📁 ' : '📁 '} {f.name}
+                    {isSub ? '   └── ' : ''}{f.name}
                   </option>
                 );
               })}

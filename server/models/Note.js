@@ -40,6 +40,11 @@ const noteSchema = new mongoose.Schema(
       type: Boolean,
       default: false
     },
+    chatGptUrl: {
+      type: String,
+      default: '',
+      trim: true
+    },
     color: {
       type: String,
       default: 'indigo'
@@ -124,6 +129,7 @@ const NoteProxy = {
       content: noteData.content || '',
       tags: tags,
       isFavorite: Boolean(noteData.isFavorite),
+      chatGptUrl: noteData.chatGptUrl ? String(noteData.chatGptUrl).trim() : '',
       color: noteData.color || 'indigo',
       attachments: Array.isArray(noteData.attachments) ? noteData.attachments : [],
       createdAt: now,

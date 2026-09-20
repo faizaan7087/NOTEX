@@ -1,7 +1,7 @@
 [
   {
     "_id": "user_1789792589062_ys97fod",
-    "name": "Faizaan Khan",
+    "name": "Demo Student",
     "email": "student_1789792588989@college.edu",
     "password": "$2b$10$z5PwcpvvnxyDVUWihqNCCuNs9wBSUEqh0VE2ROXLRzg6cUoOCgqj6",
     "college": "University Institute of Technology",
@@ -11,7 +11,7 @@
   },
   {
     "_id": "user_1789795840557_arcykho",
-    "name": "Faizaan Khan",
+    "name": "Demo Student",
     "email": "student@notex.edu",
     "password": "$2b$10$FYTfF6u7NW18G2XinYBRWOh.dg24C3h6bcrSbBITgXsZK4xBaXIC.",
     "college": "University Institute of Technology",
@@ -21,7 +21,7 @@
   },
   {
     "_id": "user_1789805982439_rrdmo90",
-    "name": "Faizaan Khan",
+    "name": "Demo Student",
     "email": "student_1789805982378@college.edu",
     "password": "$2b$10$qYQkjN.xgrWdnMG64XiLpuyW6y4MvdfmRpkgvhRmjNa7hrR4i/2n6",
     "college": "University Institute of Technology",
@@ -31,7 +31,7 @@
   },
   {
     "_id": "user_1789806182982_bolholj",
-    "name": "Faizaan Khan",
+    "name": "Demo Student",
     "email": "student_1789806182914@college.edu",
     "password": "$2b$10$YDrVtl8SiTf2cwgvJGa76.hSxO3X8.j2rGJbE9xUW3bOwTJ6i9QGC",
     "college": "University Institute of Technology",
@@ -41,7 +41,7 @@
   },
   {
     "_id": "user_1789807046886_i89414x",
-    "name": "Faizaan Khan",
+    "name": "Demo Student",
     "email": "student_1789807046780@college.edu",
     "password": "$2b$10$vF1lRszMSxZJ72ez.Q3lzuASAZb74vHzxgaPM9v7G/KmggCN/u8Qe",
     "college": "University Institute of Technology",
@@ -51,7 +51,7 @@
   },
   {
     "_id": "user_1789807803068_k77pue7",
-    "name": "Faizaan Khan",
+    "name": "Demo Student",
     "email": "student_1789807802996@college.edu",
     "password": "$2b$10$NW0seImxBnTbH1mgHcd7/.1VgbhkhJ2zV7kSiotzvFN9sGCth2XRO",
     "college": "University Institute of Technology",
@@ -61,7 +61,7 @@
   },
   {
     "_id": "user_1789808490627_enz08zg",
-    "name": "Faizaan Khan",
+    "name": "Demo Student",
     "email": "studenta_1789808490559@college.edu",
     "password": "$2b$10$DciHMB7ohTnBJ/IVMwKYuuLfd4j.Zad7HSASpAabyxuWmyImx7LF2",
     "college": "University Institute of Technology",
@@ -81,7 +81,7 @@
   },
   {
     "_id": "user_1789809420775_cgkusqp",
-    "name": "Faizaan Khan",
+    "name": "Demo Student",
     "email": "studenta_1789809420717@college.edu",
     "password": "$2b$10$DLoXeM8Q0gEp0AQlSbGrEOvmO3FqY7BcbNVauibsAXcKG6DxeI9uy",
     "college": "University Institute of Technology",
@@ -101,7 +101,7 @@
   },
   {
     "_id": "user_1789810627615_3sxi369",
-    "name": "Faizaan Khan",
+    "name": "Demo Student",
     "email": "studenta_1789810627545@college.edu",
     "password": "$2b$10$eeXXFuXFjA8pK2FHzfL3T.CFxYg8IgZ.sOlwFdp2V2q7Nkysl9AOy",
     "college": "University Institute of Technology",
@@ -121,7 +121,7 @@
   },
   {
     "_id": "user_1789810854696_x7cby1h",
-    "name": "Faizaan Khan",
+    "name": "Demo Student",
     "email": "studenta_1789810854634@college.edu",
     "password": "$2b$10$0iukJ0UEufCswBl15LYn4ewvLmlEx59nw6tqdnUQKNBx77WXMkf7e",
     "college": "University Institute of Technology",
@@ -141,7 +141,7 @@
   },
   {
     "_id": "user_1789811654394_m3uvfjt",
-    "name": "Faizaan Khan",
+    "name": "Demo Student",
     "email": "studenta_1789811654319@college.edu",
     "password": "$2b$10$r5x9GU1aUGsRTCXTNi9pTuKMNs.aVTeW1OBovSb0zf2HW8p1vUi6y",
     "googleId": null,
@@ -171,8 +171,8 @@
   },
   {
     "_id": "user_1789811689849_meeqadv",
-    "name": "Faizaan Khan",
-    "email": "faizaan.student@gmail.com",
+    "name": "Demo Student",
+    "email": "student@notex.edu",
     "password": "",
     "googleId": "google_1098234710928374",
     "avatar": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80",
@@ -186,8 +186,8 @@
   },
   {
     "_id": "user_1789814308966_nrh8rix",
-    "name": "Faizaan Khan",
-    "email": "faizaankhan708707@gmail.com",
+    "name": "Demo Student",
+    "email": "student@notex.edu",
     "password": "",
     "googleId": "115118041612819975680",
     "avatar": "https://lh3.googleusercontent.com/a/ACg8ocKkD4gS_WZVdU8P4l9ZGIvEfAI3CqjxJmdkcRjd0YLpodFIsQ=s96-c",

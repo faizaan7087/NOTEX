@@ -120,7 +120,7 @@ export const ShareFolderModal = ({
             >
               {allFolders.map((f) => (
                 <option key={f._id || f.id} value={f._id || f.id}>
-                  📁 {f.name} ({f.noteCount || 0} notes)
+                  {f.name} ({f.noteCount || 0} notes)
                 </option>
               ))}
             </select>
@@ -172,7 +172,7 @@ export const ShareFolderModal = ({
               >
                 {EXPIRY_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
-                    ⏳ Valid for {opt.label}
+                    Valid for {opt.label}
                   </option>
                 ))}
               </select>
