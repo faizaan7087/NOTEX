@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { 
@@ -17,8 +17,8 @@ import {
 import { openAttachmentInNewTab } from '../../utils/fileHelper';
 
 const detectLinkType = (url = '', text = '') => {
-  const lowerUrl = url.toLowerCase();
-  const lowerText = text.toLowerCase();
+  const lowerUrl = (url || '').toLowerCase();
+  const lowerText = (text || '').toLowerCase();
 
   if (lowerUrl.includes('drive.google.com') || lowerUrl.includes('docs.google.com')) {
     return { type: 'drive', name: 'Google Drive Document', icon: Globe, color: 'blue' };
@@ -47,44 +47,104 @@ const extractPlainText = (node) => {
   return '';
 };
 
+const safeCleanString = (str = '') => {
+  if (!str) return '';
+  try {
+    str = decodeURIComponent(str);
+  } catch {
+    // Keep original if URI decoding fails
+  }
+  return str
+    .replace(/^attachment[:/]+/i, '')
+    .replace(/^[🔗📄📎📁📝\s*#./\\]+/, '')
+    .replace(/[*_~`]/g, '')
+    .trim();
+};
+
 export const MarkdownRenderer = ({ content, attachments = [], className = '' }) => {
   const [copiedLink, setCopiedLink] = useState(null);
 
+  // Auto-detect standalone document filenames in note content and format them as rich attachment links
+  const processedContent = useMemo(() => {
+    if (!content || typeof content !== 'string') return '';
+    if (!attachments || attachments.length === 0) return content;
+
+    let text = content;
+    attachments.forEach((att) => {
+      if (!att || !att.name || att.type?.startsWith('link')) return;
+
+      const filename = att.name.trim();
+      const escaped = filename.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+      // Check if filename appears as standalone line or word without markdown link brackets
+      const standalonePattern = new RegExp(`(^|\\n|\\r\\n)\\s*(${escaped})\\s*($|\\n|\\r\\n)`, 'gi');
+      text = text.replace(standalonePattern, (match, before, name, after) => {
+        return `${before}> 📄 **[${name}](attachment:${att.id || name})**${after}`;
+      });
+    });
+
+    return text;
+  }, [content, attachments]);
+
   const resolveAttachment = (url = '', text = '') => {
     if (!attachments || attachments.length === 0) {
-      return { url, isAttachment: false, attachment: null };
+      return { url: url || '', isAttachment: false, attachment: null };
     }
 
-    const cleanUrl = decodeURIComponent(url.replace(/^attachment:/, '').replace(/^[#./\\]+/, '').trim());
-    const cleanText = decodeURIComponent(text.replace(/^[🔗📄📎\s]+/, '').trim());
+    const rawUrl = String(url || '').trim();
+    const rawText = String(text || '').trim();
+    const cleanUrl = safeCleanString(rawUrl);
+    const cleanText = safeCleanString(rawText);
 
     // 1. Exact ID match
-    let match = attachments.find(
-      (a) => a.id === cleanUrl || (a.id && String(a.id).toLowerCase() === cleanUrl.toLowerCase())
-    );
+    let match = attachments.find((a) => {
+      if (!a) return false;
+      const aId = String(a.id || '').trim();
+      return aId && (aId === cleanUrl || aId.toLowerCase() === cleanUrl.toLowerCase() || rawUrl.includes(aId));
+    });
 
     // 2. Exact Name match (by URL or text)
     if (!match) {
-      match = attachments.find(
-        (a) =>
-          a.name === cleanUrl ||
-          a.name === cleanText ||
-          (a.name && cleanUrl && a.name.toLowerCase() === cleanUrl.toLowerCase()) ||
-          (a.name && cleanText && a.name.toLowerCase() === cleanText.toLowerCase())
-      );
+      match = attachments.find((a) => {
+        if (!a || !a.name) return false;
+        const aName = a.name.trim();
+        const aNameLower = aName.toLowerCase();
+        return (
+          aName === cleanUrl ||
+          aName === cleanText ||
+          aNameLower === cleanUrl.toLowerCase() ||
+          aNameLower === cleanText.toLowerCase()
+        );
+      });
     }
 
-    // 3. Partial filename match
-    if (!match && (cleanUrl || cleanText)) {
-      match = attachments.find(
-        (a) =>
-          (a.name && cleanUrl && (a.name.toLowerCase().includes(cleanUrl.toLowerCase()) || cleanUrl.toLowerCase().includes(a.name.toLowerCase()))) ||
-          (a.name && cleanText && (a.name.toLowerCase().includes(cleanText.toLowerCase()) || cleanText.toLowerCase().includes(a.name.toLowerCase())))
-      );
+    // 3. Match without extension (e.g. "examplefile" matches "examplefile.docx")
+    if (!match) {
+      match = attachments.find((a) => {
+        if (!a || !a.name) return false;
+        const baseName = a.name.replace(/\.[^/.]+$/, '').trim().toLowerCase();
+        const cleanUrlBase = cleanUrl.replace(/\.[^/.]+$/, '').toLowerCase();
+        const cleanTextBase = cleanText.replace(/\.[^/.]+$/, '').toLowerCase();
+        return (
+          (baseName && (baseName === cleanUrlBase || baseName === cleanTextBase)) ||
+          (cleanUrl && a.name.toLowerCase().includes(cleanUrl.toLowerCase())) ||
+          (cleanText && a.name.toLowerCase().includes(cleanText.toLowerCase())) ||
+          (cleanUrl && cleanUrl.toLowerCase().includes(a.name.toLowerCase())) ||
+          (cleanText && cleanText.toLowerCase().includes(a.name.toLowerCase()))
+        );
+      });
     }
 
-    // 4. File extension match if note has attachments
+    // 4. File extension match if only 1 matching file exists
     if (!match && (cleanUrl.match(/\.(docx|doc|pdf|png|jpg|jpeg|webp|txt)$/i) || cleanText.match(/\.(docx|doc|pdf|png|jpg|jpeg|webp|txt)$/i))) {
+      const fileAtts = attachments.filter((a) => !a.type?.startsWith('link'));
+      if (fileAtts.length === 1) {
+        match = fileAtts[0];
+      }
+    }
+
+    // 5. If URL specifically starts with "attachment:" and we have only 1 file attachment, bind to it!
+    if (!match && (rawUrl.startsWith('attachment:') || rawUrl.includes('attachment:'))) {
       const fileAtts = attachments.filter((a) => !a.type?.startsWith('link'));
       if (fileAtts.length === 1) {
         match = fileAtts[0];
@@ -93,10 +153,20 @@ export const MarkdownRenderer = ({ content, attachments = [], className = '' }) 
 
     if (match) {
       const effectiveUrl = match.driveViewLink || match.data;
-      return { url: effectiveUrl, isAttachment: true, attachment: match };
+      return {
+        url: effectiveUrl,
+        driveViewLink: match.driveViewLink,
+        data: match.data,
+        isAttachment: true,
+        attachment: match
+      };
     }
 
-    return { url, isAttachment: url.startsWith('attachment:'), attachment: null };
+    return {
+      url: rawUrl,
+      isAttachment: rawUrl.startsWith('attachment:') || rawUrl.includes('attachment:'),
+      attachment: null
+    };
   };
 
   const handleCopy = (url, e) => {
@@ -104,9 +174,11 @@ export const MarkdownRenderer = ({ content, attachments = [], className = '' }) 
       e.preventDefault();
       e.stopPropagation();
     }
-    navigator.clipboard.writeText(url);
-    setCopiedLink(url);
-    setTimeout(() => setCopiedLink(null), 2000);
+    if (url) {
+      navigator.clipboard.writeText(url);
+      setCopiedLink(url);
+      setTimeout(() => setCopiedLink(null), 2000);
+    }
   };
 
   if (!content || !content.trim()) {
@@ -118,7 +190,7 @@ export const MarkdownRenderer = ({ content, attachments = [], className = '' }) 
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          // Custom Blockquote Renderer: if blockquote contains a link, render as a rich Interactive Link Block Card!
+          // Custom Blockquote Renderer: if blockquote contains a document link, render with clean styling
           blockquote({ node, children, ...props }) {
             return (
               <blockquote 
@@ -137,16 +209,16 @@ export const MarkdownRenderer = ({ content, attachments = [], className = '' }) 
             const { url: linkUrl, isAttachment, attachment } = resolveAttachment(rawHref, linkText);
             const info = detectLinkType(linkUrl, linkText);
             const isCopied = copiedLink === linkUrl;
-            const cleanText = linkText.replace(/^[🔗📄📎\s]+/, '').trim() || attachment?.name || info.name;
+            const cleanText = linkText.replace(/^[🔗📄📎📁📝\s*]+/, '').trim() || attachment?.name || info.name;
 
             const isDocOrFile = isAttachment || 
                                 info.type === 'pdf' || 
                                 info.type === 'drive' ||
                                 cleanText.match(/\.(docx|doc|pdf|png|jpg|jpeg|gif|webp|txt|zip|xlsx|pptx)$/i) ||
-                                linkUrl.startsWith('data:') ||
-                                linkUrl.startsWith('attachment:');
+                                (linkUrl && linkUrl.startsWith('data:')) ||
+                                rawHref.startsWith('attachment:');
 
-            const isBlockLike = linkText.includes('🔗') || linkText.includes('📄') || linkText.length > 25 || isAttachment || isDocOrFile;
+            const isBlockLike = linkText.includes('🔗') || linkText.includes('📄') || isAttachment || isDocOrFile;
 
             const handleOpen = (e) => {
               if (e) {
@@ -154,13 +226,25 @@ export const MarkdownRenderer = ({ content, attachments = [], className = '' }) 
                 e.stopPropagation();
               }
               const targetUrl = attachment?.driveViewLink || linkUrl || attachment?.data;
-              openAttachmentInNewTab(targetUrl, cleanText || attachment?.name, attachment?.type);
+              if (targetUrl && !targetUrl.startsWith('attachment:')) {
+                openAttachmentInNewTab(targetUrl, cleanText || attachment?.name, attachment?.type);
+              } else if (attachment) {
+                openAttachmentInNewTab(attachment, cleanText || attachment?.name, attachment?.type);
+              } else {
+                // Fallback: look for first matching document in note attachments
+                const fallbackAtt = attachments?.find(a => !a.type?.startsWith('link'));
+                if (fallbackAtt) {
+                  openAttachmentInNewTab(fallbackAtt, fallbackAtt.name, fallbackAtt.type);
+                } else if (linkUrl && (linkUrl.startsWith('http://') || linkUrl.startsWith('https://'))) {
+                  window.open(linkUrl, '_blank', 'noopener,noreferrer');
+                }
+              }
             };
 
             // If link is styled as a block link (contains link emoji or is document/attachment)
             if (isBlockLike || info.type === 'ai' || isAttachment) {
               const isAi = info.type === 'ai';
-              const isPdf = isAttachment || info.type === 'pdf' || linkUrl.startsWith('data:application/pdf') || linkUrl.endsWith('.pdf');
+              const isPdf = isAttachment || info.type === 'pdf' || (linkUrl && (linkUrl.startsWith('data:application/pdf') || linkUrl.endsWith('.pdf')));
 
               return (
                 <span className={`block my-2.5 not-prose rounded-2xl border transition-all ${
@@ -185,7 +269,7 @@ export const MarkdownRenderer = ({ content, attachments = [], className = '' }) 
                         ) : isPdf ? (
                           <FileText className="w-4 h-4" />
                         ) : (
-                          <info.icon className="w-4 h-4" />
+                          <FileText className="w-4 h-4" />
                         )}
                       </span>
                       <span className="min-w-0">
@@ -195,20 +279,24 @@ export const MarkdownRenderer = ({ content, attachments = [], className = '' }) 
                         <span className={`block text-[11px] font-mono truncate ${
                           isAi ? 'text-emerald-700' : 'text-zinc-500'
                         }`}>
-                          {linkUrl.startsWith('data:') 
-                            ? 'Attached Study Document (Click to Open in New Tab)' 
-                            : linkUrl.includes('drive.google.com') 
+                          {attachment?.driveViewLink 
                             ? 'Google Drive Attached Document (Click to Open)' 
-                            : linkUrl}
+                            : (linkUrl && linkUrl.startsWith('data:')) 
+                            ? 'Attached Study Document (Click to Open in New Tab)' 
+                            : (linkUrl && linkUrl.includes('drive.google.com')) 
+                            ? 'Google Drive Attached Document (Click to Open)' 
+                            : isAttachment || (linkUrl && linkUrl.startsWith('attachment:'))
+                            ? 'Attached Study Document (Click to Open)'
+                            : linkUrl || 'Attached Resource'}
                         </span>
                       </span>
                     </span>
 
                     <span className="flex items-center gap-1.5 shrink-0">
-                      {!linkUrl.startsWith('data:') && !linkUrl.startsWith('attachment:') && (
+                      {linkUrl && !linkUrl.startsWith('data:') && !linkUrl.startsWith('attachment:') && !linkUrl.startsWith('#') && (
                         <button
                           type="button"
-                          onClick={(e) => handleCopy(linkUrl, e)}
+                          onClick={(e) => handleCopy(attachment?.driveViewLink || linkUrl, e)}
                           className="p-1.5 text-zinc-500 hover:text-black hover:bg-zinc-200/70 rounded-lg transition-colors cursor-pointer"
                           title="Copy Link"
                         >
@@ -238,7 +326,7 @@ export const MarkdownRenderer = ({ content, attachments = [], className = '' }) 
             // Standard Inline Link
             return (
               <a
-                href={attachment?.driveViewLink || linkUrl}
+                href={attachment?.driveViewLink || (linkUrl && (linkUrl.startsWith('http://') || linkUrl.startsWith('https://')) ? linkUrl : '#')}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={handleOpen}
@@ -254,17 +342,22 @@ export const MarkdownRenderer = ({ content, attachments = [], className = '' }) 
           // Custom Image Component: responsive inline image with 1-click open in new tab
           img({ src, alt, ...props }) {
             const cleanAlt = alt || 'Attached image';
-            const { url: resolvedSrc, attachment } = resolveAttachment(src);
+            const { url: resolvedSrc, attachment } = resolveAttachment(src, cleanAlt);
+            const displaySrc = resolvedSrc || src;
 
-            const handleOpenImage = () => {
-              openAttachmentInNewTab(resolvedSrc, cleanAlt, attachment?.type || 'image/png');
+            const handleOpenImage = (e) => {
+              if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+              }
+              openAttachmentInNewTab(attachment || displaySrc, cleanAlt, attachment?.type || 'image/png');
             };
 
             return (
               <span className="block my-3 not-prose">
                 <span className="group relative block rounded-2xl overflow-hidden border border-zinc-200 bg-zinc-50 shadow-xs max-w-xl">
                   <img
-                    src={resolvedSrc}
+                    src={displaySrc}
                     alt={cleanAlt}
                     onClick={handleOpenImage}
                     className="w-full max-h-96 object-contain bg-zinc-950/5 cursor-pointer transition-transform duration-200 hover:scale-[1.01]"
@@ -290,75 +383,75 @@ export const MarkdownRenderer = ({ content, attachments = [], className = '' }) 
             );
           },
 
-            // Headings
-            h1: ({ children }) => <h1 className="text-xl sm:text-2xl font-bold font-display text-zinc-950 mt-4 mb-2 tracking-tight">{children}</h1>,
-            h2: ({ children }) => <h2 className="text-lg sm:text-xl font-bold font-display text-zinc-950 mt-3 mb-2 tracking-tight">{children}</h2>,
-            h3: ({ children }) => <h3 className="text-base font-semibold font-display text-zinc-950 mt-3 mb-1">{children}</h3>,
-            
-            // Paragraphs
-            p: ({ children }) => <p className="text-sm sm:text-base text-zinc-800 leading-relaxed font-sans mb-3">{children}</p>,
+          // Headings
+          h1: ({ children }) => <h1 className="text-xl sm:text-2xl font-bold font-display text-zinc-950 mt-4 mb-2 tracking-tight">{children}</h1>,
+          h2: ({ children }) => <h2 className="text-lg sm:text-xl font-bold font-display text-zinc-950 mt-3 mb-2 tracking-tight">{children}</h2>,
+          h3: ({ children }) => <h3 className="text-base font-semibold font-display text-zinc-950 mt-3 mb-1">{children}</h3>,
+          
+          // Paragraphs
+          p: ({ children }) => <p className="text-sm sm:text-base text-zinc-800 leading-relaxed font-sans mb-3">{children}</p>,
 
-            // Lists
-            ul: ({ children }) => <ul className="list-disc list-inside space-y-1 my-2 text-sm sm:text-base text-zinc-800">{children}</ul>,
-            ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 my-2 text-sm sm:text-base text-zinc-800">{children}</ol>,
-            li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+          // Lists
+          ul: ({ children }) => <ul className="list-disc list-inside space-y-1 my-2 text-sm sm:text-base text-zinc-800">{children}</ul>,
+          ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 my-2 text-sm sm:text-base text-zinc-800">{children}</ol>,
+          li: ({ children }) => <li className="leading-relaxed">{children}</li>,
 
-            // Code Blocks & Inline Code
-            code({ inline, className, children, ...props }) {
-              const codeString = String(children).replace(/\n$/, '');
-              if (inline) {
-                return (
-                  <code className="px-1.5 py-0.5 rounded-md bg-zinc-100 text-zinc-900 font-mono text-xs border border-zinc-200" {...props}>
-                    {children}
-                  </code>
-                );
-              }
+          // Code Blocks & Inline Code
+          code({ inline, className, children, ...props }) {
+            const codeString = String(children).replace(/\n$/, '');
+            if (inline) {
               return (
-                <div className="relative my-3 rounded-2xl overflow-hidden bg-zinc-950 text-zinc-100 border border-zinc-800 text-xs font-mono">
-                  <div className="flex items-center justify-between px-3.5 py-2 bg-zinc-900 border-b border-zinc-800 text-[11px] text-zinc-400">
-                    <span>Code Snippet</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigator.clipboard.writeText(codeString);
-                        setCopiedLink('code_' + codeString.slice(0, 10));
-                        setTimeout(() => setCopiedLink(null), 2000);
-                      }}
-                      className="flex items-center gap-1 hover:text-white transition-colors cursor-pointer"
-                    >
-                      {copiedLink === 'code_' + codeString.slice(0, 10) ? (
-                        <>
-                          <Check className="w-3 h-3 text-emerald-400" />
-                          <span className="text-emerald-400">Copied</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3 h-3" />
-                          <span>Copy</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                  <pre className="p-3.5 overflow-x-auto leading-relaxed">
-                    <code>{codeString}</code>
-                  </pre>
-                </div>
+                <code className="px-1.5 py-0.5 rounded-md bg-zinc-100 text-zinc-900 font-mono text-xs border border-zinc-200" {...props}>
+                  {children}
+                </code>
               );
-            },
-
-            // Tables
-            table: ({ children }) => (
-              <div className="overflow-x-auto my-3 rounded-2xl border border-zinc-200 bg-white">
-                <table className="w-full text-left text-xs border-collapse">{children}</table>
+            }
+            return (
+              <div className="relative my-3 rounded-2xl overflow-hidden bg-zinc-950 text-zinc-100 border border-zinc-800 text-xs font-mono">
+                <div className="flex items-center justify-between px-3.5 py-2 bg-zinc-900 border-b border-zinc-800 text-[11px] text-zinc-400">
+                  <span>Code Snippet</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(codeString);
+                      setCopiedLink('code_' + codeString.slice(0, 10));
+                      setTimeout(() => setCopiedLink(null), 2000);
+                    }}
+                    className="flex items-center gap-1 hover:text-white transition-colors cursor-pointer"
+                  >
+                    {copiedLink === 'code_' + codeString.slice(0, 10) ? (
+                      <>
+                        <Check className="w-3 h-3 text-emerald-400" />
+                        <span className="text-emerald-400">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                <pre className="p-3.5 overflow-x-auto leading-relaxed">
+                  <code>{codeString}</code>
+                </pre>
               </div>
-            ),
-            th: ({ children }) => <th className="p-2.5 bg-zinc-100 font-bold text-zinc-900 border-b border-zinc-200">{children}</th>,
-            td: ({ children }) => <td className="p-2.5 border-b border-zinc-100 text-zinc-700">{children}</td>,
-            hr: () => <hr className="my-4 border-zinc-200" />
-          }}
-        >
-          {content}
-        </ReactMarkdown>
-      </div>
+            );
+          },
+
+          // Tables
+          table: ({ children }) => (
+            <div className="overflow-x-auto my-3 rounded-2xl border border-zinc-200 bg-white">
+              <table className="w-full text-left text-xs border-collapse">{children}</table>
+            </div>
+          ),
+          th: ({ children }) => <th className="p-2.5 bg-zinc-100 font-bold text-zinc-900 border-b border-zinc-200">{children}</th>,
+          td: ({ children }) => <td className="p-2.5 border-b border-zinc-100 text-zinc-700">{children}</td>,
+          hr: () => <hr className="my-4 border-zinc-200" />
+        }}
+      >
+        {processedContent}
+      </ReactMarkdown>
+    </div>
   );
 };

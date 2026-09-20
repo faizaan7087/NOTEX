@@ -66,20 +66,32 @@ export const dataUrlToBlob = (dataUrl, filename = '', explicitMime = '') => {
 export const openAttachmentInNewTab = async (dataOrUrl, filename = 'document', mimeType = '') => {
   if (!dataOrUrl) return;
 
+  // If passed an attachment object
+  if (typeof dataOrUrl === 'object' && dataOrUrl !== null) {
+    const att = dataOrUrl;
+    const effectiveTarget = att.driveViewLink || att.data;
+    const effectiveName = att.name || filename;
+    const effectiveMime = att.type || mimeType;
+    return openAttachmentInNewTab(effectiveTarget, effectiveName, effectiveMime);
+  }
+
+  const str = String(dataOrUrl).trim();
+  if (!str) return;
+
   // 1. Standard web / Google Drive URLs
-  if (dataOrUrl.startsWith('http://') || dataOrUrl.startsWith('https://')) {
-    window.open(dataOrUrl, '_blank', 'noopener,noreferrer');
+  if (str.startsWith('http://') || str.startsWith('https://')) {
+    window.open(str, '_blank', 'noopener,noreferrer');
     return;
   }
 
   // 2. Existing Blob URLs
-  if (dataOrUrl.startsWith('blob:')) {
-    window.open(dataOrUrl, '_blank');
+  if (str.startsWith('blob:')) {
+    window.open(str, '_blank');
     return;
   }
 
   // 3. Base64 Data URLs
-  if (dataOrUrl.startsWith('data:')) {
+  if (str.startsWith('data:')) {
     // Open a blank new tab SYNCHRONOUSLY within the user click event to prevent popup blockers from killing async window.open
     const win = window.open('', '_blank');
     if (win) {

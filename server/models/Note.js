@@ -56,6 +56,9 @@ const noteSchema = new mongoose.Schema(
         type: String,
         size: Number,
         data: String,
+        driveViewLink: String,
+        driveDownloadLink: String,
+        driveFileId: String,
         uploadedAt: String
       }
     ]
