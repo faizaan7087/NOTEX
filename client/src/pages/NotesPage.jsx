@@ -8,13 +8,8 @@ import { Button } from '../components/ui/button';
 import { AnimatedTabs } from '../components/ui/AnimatedTabs';
 import { useToast } from '../context/ToastContext';
 import { 
-  Plus, 
   FolderTree, 
-  LayoutGrid, 
-  Share2, 
-  DownloadCloud,
-  Bot,
-  Send
+  LayoutGrid
 } from 'lucide-react';
 
 export const NotesPage = ({
@@ -92,79 +87,17 @@ export const NotesPage = ({
             Notes &amp; Folders
           </h1>
           <p className="text-xs text-zinc-500 mt-0.5">
-            Organize course units, formulas, and ChatGPT answers in your vault
+            Organize course units, formulas, and attachments in your vault
           </p>
         </div>
 
-        {/* View Mode Switcher + Actions */}
+        {/* View Mode Switcher */}
         <div className="flex items-center gap-2 flex-wrap">
           <AnimatedTabs
             tabs={viewTabs}
             activeTab={isSearching ? 'grid' : viewMode}
             onChange={(tabId) => setViewMode(tabId)}
           />
-
-          {gptLinksCount > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleShareWhatsAppLinks}
-              className="bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100 transition-all shadow-2xs font-semibold"
-              title="Share all ChatGPT links to WhatsApp"
-            >
-              <Send className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Share to WhatsApp</span>
-            </Button>
-          )}
-
-          {onOpenBookmarkChat && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onOpenBookmarkChat}
-              className="bg-white/90 border-emerald-200 text-emerald-900 hover:bg-emerald-50 hover:border-emerald-300 transition-all shadow-2xs font-semibold"
-              title="Quick save a ChatGPT share link"
-            >
-              <Bot className="w-3.5 h-3.5 text-emerald-600" />
-              <span>+ Bookmark Link</span>
-            </Button>
-          )}
-
-          {onShareFolder && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onShareFolder(null)}
-              className="bg-white/80 border-zinc-200 hover:bg-black hover:text-white transition-all shadow-2xs font-semibold"
-              title="Share folder repository"
-            >
-              <Share2 className="w-3.5 h-3.5" />
-              <span>Share</span>
-            </Button>
-          )}
-
-          {onOpenImportShared && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onOpenImportShared}
-              className="bg-white/80 border-zinc-200 hover:bg-zinc-100 text-zinc-800 shadow-2xs font-medium"
-              title="Import shared repository"
-            >
-              <DownloadCloud className="w-3.5 h-3.5 text-black" />
-              <span>Import</span>
-            </Button>
-          )}
-
-          <Button
-            variant="default"
-            size="sm"
-            onClick={() => onNavigate('new-note')}
-            className="font-semibold shadow-xs"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>New Note</span>
-          </Button>
         </div>
       </div>
 

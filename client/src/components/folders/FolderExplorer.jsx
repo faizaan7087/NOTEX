@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { NoteCard } from '../notes/NoteCard';
 import { Button } from '../ui/button';
+import { useToast } from '../../context/ToastContext';
 import { 
   Folder, 
   FolderPlus, 
@@ -14,7 +15,8 @@ import {
   Layers, 
   Share2,
   DownloadCloud,
-  Sparkles
+  Sparkles,
+  Send
 } from 'lucide-react';
 
 const FOLDER_COLOR_CLASSES = {
@@ -44,6 +46,7 @@ export const FolderExplorer = ({
   onExportXML,
   onToggleFavorite
 }) => {
+  const toast = useToast();
   // Find current folder object
   const currentFolder = folders.find(f => (f._id || f.id) === currentFolderId) || null;
 
@@ -75,6 +78,41 @@ export const FolderExplorer = ({
     }
     return n.folderId === currentFolderId;
   });
+
+  const handleShareWhatsApp = () => {
+    const workspaceName = currentFolder ? currentFolder.name : 'Root Workspace';
+    if (!currentNotes || currentNotes.length === 0) {
+      toast.error(`No notes in "${workspaceName}" to share.`);
+      return;
+    }
+
+    let message = `📚 *NOTEX — ${workspaceName} Study Notes*\n\n`;
+    currentNotes.forEach((n, idx) => {
+      message += `*${idx + 1}. ${n.title}* (${n.subject})\n`;
+      if (n.chatGptUrl) {
+        message += `🤖 ChatGPT Thread: ${n.chatGptUrl}\n`;
+      }
+      if (n.attachments && n.attachments.length > 0) {
+        const docs = n.attachments.filter(a => a.driveViewLink);
+        if (docs.length > 0) {
+          docs.forEach(d => {
+            message += `📄 ${d.name}: ${d.driveViewLink}\n`;
+          });
+        } else {
+          message += `📎 ${n.attachments.length} attached document(s)\n`;
+        }
+      }
+      if (n.content) {
+        const preview = n.content.substring(0, 90).replace(/[\n\r]+/g, ' ');
+        message += `📝 ${preview}${n.content.length > 90 ? '...' : ''}\n`;
+      }
+      message += `\n`;
+    });
+    message += `_Organized in NOTEX Study Vault_`;
+
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
 
   return (
     <div className="space-y-6">
@@ -117,6 +155,18 @@ export const FolderExplorer = ({
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2 shrink-0 flex-wrap">
+          {/* Share to WhatsApp Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleShareWhatsApp}
+            className="text-xs bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100 transition-all shadow-2xs font-semibold"
+            title="Share notes and links in this workspace to WhatsApp"
+          >
+            <Send className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Share to WhatsApp</span>
+          </Button>
+
           {/* Share Repo Button */}
           {onShareFolder && (
             <Button
