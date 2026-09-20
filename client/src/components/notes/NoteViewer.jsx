@@ -116,67 +116,54 @@ export const NoteViewer = ({
             </div>
 
             {/* Quick Toolbar */}
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
                 onClick={handleCopy}
-                className="text-xs"
+                className="p-2 rounded-xl bg-white hover:bg-zinc-100 text-zinc-700 hover:text-black border border-zinc-200 transition-all shadow-2xs cursor-pointer"
+                title={copied ? "Copied to clipboard!" : "Copy note content"}
               >
-                {copied ? (
-                  <>
-                    <Check className="w-3.5 h-3.5 text-emerald-600" />
-                    <span className="text-emerald-700">Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3.5 h-3.5" />
-                    <span>Copy</span>
-                  </>
-                )}
-              </Button>
+                {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+              </button>
 
-              <Button
-                variant="outline"
-                size="sm"
+              <button
+                type="button"
                 onClick={() => onExportXML(note)}
-                className="text-xs text-zinc-700 hover:text-black"
+                className="p-2 rounded-xl bg-white hover:bg-zinc-100 text-zinc-700 hover:text-black border border-zinc-200 transition-all shadow-2xs cursor-pointer"
+                title="Export note as XML"
               >
-                <FileCode2 className="w-3.5 h-3.5" />
-                <span>XML</span>
-              </Button>
+                <FileCode2 className="w-4 h-4" />
+              </button>
 
-              <Button
-                variant="secondary"
-                size="sm"
+              <button
+                type="button"
                 onClick={() => {
                   onClose?.();
                   onEdit(note);
                 }}
-                className="text-xs"
+                className="p-2 rounded-xl bg-white hover:bg-zinc-100 text-zinc-700 hover:text-black border border-zinc-200 transition-all shadow-2xs cursor-pointer"
+                title="Edit Note"
               >
-                <Edit3 className="w-3.5 h-3.5" />
-                <span>Edit</span>
-              </Button>
+                <Edit3 className="w-4 h-4" />
+              </button>
 
-              <Button
-                variant="danger"
-                size="sm"
+              <button
+                type="button"
                 onClick={() => {
                   onClose?.();
                   onDelete(note);
                 }}
-                className="text-xs"
+                className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 border border-rose-200 transition-all shadow-2xs cursor-pointer"
                 title="Delete note"
               >
-                <Trash2 className="w-3.5 h-3.5" />
-              </Button>
+                <Trash2 className="w-4 h-4" />
+              </button>
 
               {onClose && (
                 <button
                   type="button"
                   onClick={onClose}
-                  className="p-1.5 rounded-xl text-zinc-400 hover:text-black hover:bg-zinc-100 transition-colors cursor-pointer ml-1 border border-zinc-200/60"
+                  className="p-2 rounded-xl text-zinc-400 hover:text-black hover:bg-zinc-100 transition-colors cursor-pointer border border-zinc-200/60"
                   title="Close viewer (Esc)"
                 >
                   <X className="w-4 h-4" />

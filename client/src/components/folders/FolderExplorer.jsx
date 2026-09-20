@@ -118,8 +118,9 @@ export const FolderExplorer = ({
     <div className="space-y-6">
       
       {/* Top Header & Breadcrumb Bar */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 rounded-3xl glass-panel">
-        <div className="flex items-center gap-2 flex-wrap text-xs sm:text-sm font-medium text-zinc-600">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-3xl glass-panel">
+        {/* Left: Breadcrumbs Trail */}
+        <div className="flex items-center gap-1.5 flex-wrap text-xs sm:text-sm font-medium text-zinc-600 min-w-0">
           <button
             onClick={() => onNavigateFolder(null)}
             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl transition-all ${
@@ -128,15 +129,15 @@ export const FolderExplorer = ({
                 : 'hover:text-black hover:bg-white/80'
             }`}
           >
-            <Home className="w-4 h-4" />
-            <span>Root Workspace</span>
+            <Home className="w-3.5 h-3.5" />
+            <span className="text-xs">Root</span>
           </button>
 
           {breadcrumbs.map((crumb, idx) => {
             const isLast = idx === breadcrumbs.length - 1;
             return (
               <React.Fragment key={crumb._id || crumb.id}>
-                <ChevronRight className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                <ChevronRight className="w-3 h-3 text-zinc-400 shrink-0" />
                 <button
                   onClick={() => onNavigateFolder(crumb._id || crumb.id)}
                   className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl transition-all ${
@@ -146,96 +147,92 @@ export const FolderExplorer = ({
                   }`}
                 >
                   <Folder className="w-3.5 h-3.5" />
-                  <span className="truncate max-w-[180px]">{crumb.name}</span>
+                  <span className="truncate max-w-[140px] text-xs">{crumb.name}</span>
                 </button>
               </React.Fragment>
             );
           })}
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center gap-2 shrink-0 flex-wrap">
-          {/* Share to WhatsApp Button */}
-          <Button
-            variant="outline"
-            size="sm"
+        {/* Right: Sleek Compact Icon Actions */}
+        <div className="flex items-center gap-1.5 shrink-0 flex-wrap sm:flex-nowrap">
+          {/* Share to WhatsApp */}
+          <button
+            type="button"
             onClick={handleShareWhatsApp}
-            className="text-xs bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100 transition-all shadow-2xs font-semibold"
-            title="Share notes and links in this workspace to WhatsApp"
+            className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-all shadow-2xs cursor-pointer"
+            title="Share notes in this folder to WhatsApp"
           >
             <Send className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Share to WhatsApp</span>
-          </Button>
+          </button>
 
-          {/* Share Repo Button */}
+          {/* Share Repo */}
           {onShareFolder && (
-            <Button
-              variant="outline"
-              size="sm"
+            <button
+              type="button"
               onClick={() => onShareFolder(currentFolder || null)}
-              className="text-xs bg-white border-zinc-200 hover:bg-black hover:text-white transition-all shadow-2xs font-semibold"
-              title={currentFolder ? `Share ${currentFolder.name}` : "Share folder repository"}
+              className="p-2 rounded-xl bg-white hover:bg-zinc-100 text-zinc-700 hover:text-black border border-zinc-200 transition-all shadow-2xs cursor-pointer"
+              title={currentFolder ? `Share "${currentFolder.name}" repository` : 'Share folder repository'}
             >
               <Share2 className="w-3.5 h-3.5" />
-              <span>Share</span>
-            </Button>
+            </button>
           )}
 
-          {/* Import Repo Button */}
+          {/* Import Repo */}
           {onOpenImportShared && (
-            <Button
-              variant="outline"
-              size="sm"
+            <button
+              type="button"
               onClick={onOpenImportShared}
-              className="text-xs bg-white border-zinc-200 hover:bg-zinc-100 text-zinc-800 shadow-2xs font-medium"
+              className="p-2 rounded-xl bg-white hover:bg-zinc-100 text-zinc-700 hover:text-black border border-zinc-200 transition-all shadow-2xs cursor-pointer"
               title="Import shared repository"
             >
-              <DownloadCloud className="w-3.5 h-3.5 text-black" />
-              <span>Import</span>
-            </Button>
+              <DownloadCloud className="w-3.5 h-3.5 text-zinc-700" />
+            </button>
           )}
 
+          {/* Folder Management (Rename & Delete) */}
           {currentFolder && (
             <>
               <button
+                type="button"
                 onClick={() => onEditFolder(currentFolder)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-zinc-700 hover:text-black bg-white hover:bg-zinc-100 border border-zinc-200 rounded-xl transition-colors shadow-2xs font-medium"
-                title="Rename folder"
+                className="p-2 rounded-xl bg-white hover:bg-zinc-100 text-zinc-700 hover:text-black border border-zinc-200 transition-all shadow-2xs cursor-pointer"
+                title="Rename this folder"
               >
                 <Edit3 className="w-3.5 h-3.5" />
-                <span>Rename</span>
               </button>
 
               <button
+                type="button"
                 onClick={() => onDeleteFolder(currentFolder)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition-colors shadow-2xs font-semibold"
+                className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 border border-rose-200 transition-all shadow-2xs cursor-pointer"
                 title="Delete this folder"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                <span>Delete Folder</span>
               </button>
             </>
           )}
 
-          <Button
-            variant="outline"
-            size="sm"
+          {/* Create Subfolder */}
+          <button
+            type="button"
             onClick={() => onCreateSubfolder(currentFolderId)}
-            className="text-xs bg-white border-zinc-200 hover:bg-zinc-100"
+            className="p-2 rounded-xl bg-white hover:bg-zinc-100 text-zinc-700 hover:text-black border border-zinc-200 transition-all shadow-2xs cursor-pointer"
+            title={currentFolderId ? 'Create subfolder here' : 'Create top-level folder'}
           >
             <FolderPlus className="w-3.5 h-3.5" />
-            <span>{currentFolderId ? '+ Subfolder' : '+ Folder'}</span>
-          </Button>
+          </button>
 
-          <Button
-            variant="default"
-            size="sm"
+          {/* Add Note Button */}
+          <button
+            type="button"
             onClick={() => onCreateNoteInFolder(currentFolderId, currentFolder?.name)}
-            className="text-xs font-semibold shadow-sm"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-950 hover:bg-black text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
+            title="Create new note in this folder"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Add Note</span>
-          </Button>
+            <span>Note</span>
+          </button>
         </div>
       </div>
 
