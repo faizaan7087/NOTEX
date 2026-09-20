@@ -50,30 +50,53 @@ const extractPlainText = (node) => {
 export const MarkdownRenderer = ({ content, attachments = [], className = '' }) => {
   const [copiedLink, setCopiedLink] = useState(null);
 
-  const resolveAttachment = (url) => {
-    if (!url) return { url: '', isAttachment: false, attachment: null };
-    if (url.startsWith('attachment:')) {
-      const attIdOrName = decodeURIComponent(url.replace(/^attachment:/, '').trim());
-      const match = (attachments || []).find(
-        (a) => a.id === attIdOrName || 
-               a.name === attIdOrName || 
-               (a.id && String(a.id).toLowerCase() === attIdOrName.toLowerCase()) ||
-               (a.name && String(a.name).toLowerCase() === attIdOrName.toLowerCase())
-      );
-      if (match) {
-        const effectiveUrl = match.driveViewLink || match.data;
-        return { url: effectiveUrl, isAttachment: true, attachment: match };
-      }
-      const partialMatch = (attachments || []).find(
-        (a) => a.name && (a.name.includes(attIdOrName) || attIdOrName.includes(a.name))
-      );
-      if (partialMatch) {
-        const effectiveUrl = partialMatch.driveViewLink || partialMatch.data;
-        return { url: effectiveUrl, isAttachment: true, attachment: partialMatch };
-      }
-      return { url, isAttachment: true, attachment: null };
+  const resolveAttachment = (url = '', text = '') => {
+    if (!attachments || attachments.length === 0) {
+      return { url, isAttachment: false, attachment: null };
     }
-    return { url, isAttachment: false, attachment: null };
+
+    const cleanUrl = decodeURIComponent(url.replace(/^attachment:/, '').replace(/^[#./\\]+/, '').trim());
+    const cleanText = decodeURIComponent(text.replace(/^[🔗📄📎\s]+/, '').trim());
+
+    // 1. Exact ID match
+    let match = attachments.find(
+      (a) => a.id === cleanUrl || (a.id && String(a.id).toLowerCase() === cleanUrl.toLowerCase())
+    );
+
+    // 2. Exact Name match (by URL or text)
+    if (!match) {
+      match = attachments.find(
+        (a) =>
+          a.name === cleanUrl ||
+          a.name === cleanText ||
+          (a.name && cleanUrl && a.name.toLowerCase() === cleanUrl.toLowerCase()) ||
+          (a.name && cleanText && a.name.toLowerCase() === cleanText.toLowerCase())
+      );
+    }
+
+    // 3. Partial filename match
+    if (!match && (cleanUrl || cleanText)) {
+      match = attachments.find(
+        (a) =>
+          (a.name && cleanUrl && (a.name.toLowerCase().includes(cleanUrl.toLowerCase()) || cleanUrl.toLowerCase().includes(a.name.toLowerCase()))) ||
+          (a.name && cleanText && (a.name.toLowerCase().includes(cleanText.toLowerCase()) || cleanText.toLowerCase().includes(a.name.toLowerCase())))
+      );
+    }
+
+    // 4. File extension match if note has attachments
+    if (!match && (cleanUrl.match(/\.(docx|doc|pdf|png|jpg|jpeg|webp|txt)$/i) || cleanText.match(/\.(docx|doc|pdf|png|jpg|jpeg|webp|txt)$/i))) {
+      const fileAtts = attachments.filter((a) => !a.type?.startsWith('link'));
+      if (fileAtts.length === 1) {
+        match = fileAtts[0];
+      }
+    }
+
+    if (match) {
+      const effectiveUrl = match.driveViewLink || match.data;
+      return { url: effectiveUrl, isAttachment: true, attachment: match };
+    }
+
+    return { url, isAttachment: url.startsWith('attachment:'), attachment: null };
   };
 
   const handleCopy = (url, e) => {
@@ -110,22 +133,34 @@ export const MarkdownRenderer = ({ content, attachments = [], className = '' }) 
           // Custom Link Component: converts markdown links into interactive link blocks or clean inline links
           a({ href, children, ...props }) {
             const rawHref = href || '';
-            const { url: linkUrl, isAttachment, attachment } = resolveAttachment(rawHref);
-            const linkText = extractPlainText(children) || linkUrl;
+            const linkText = extractPlainText(children) || rawHref;
+            const { url: linkUrl, isAttachment, attachment } = resolveAttachment(rawHref, linkText);
             const info = detectLinkType(linkUrl, linkText);
             const isCopied = copiedLink === linkUrl;
-            const isBlockLike = linkText.includes('🔗') || linkText.includes('📄') || linkText.length > 25 || isAttachment;
             const cleanText = linkText.replace(/^[🔗📄📎\s]+/, '').trim() || attachment?.name || info.name;
 
-            // If link is styled as a block link (contains link emoji or is standalone block)
+            const isDocOrFile = isAttachment || 
+                                info.type === 'pdf' || 
+                                info.type === 'drive' ||
+                                cleanText.match(/\.(docx|doc|pdf|png|jpg|jpeg|gif|webp|txt|zip|xlsx|pptx)$/i) ||
+                                linkUrl.startsWith('data:') ||
+                                linkUrl.startsWith('attachment:');
+
+            const isBlockLike = linkText.includes('🔗') || linkText.includes('📄') || linkText.length > 25 || isAttachment || isDocOrFile;
+
+            const handleOpen = (e) => {
+              if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+              }
+              const targetUrl = attachment?.driveViewLink || linkUrl || attachment?.data;
+              openAttachmentInNewTab(targetUrl, cleanText || attachment?.name, attachment?.type);
+            };
+
+            // If link is styled as a block link (contains link emoji or is document/attachment)
             if (isBlockLike || info.type === 'ai' || isAttachment) {
               const isAi = info.type === 'ai';
               const isPdf = isAttachment || info.type === 'pdf' || linkUrl.startsWith('data:application/pdf') || linkUrl.endsWith('.pdf');
-
-              const handleOpen = (e) => {
-                if (e) e.preventDefault();
-                openAttachmentInNewTab(linkUrl, cleanText, attachment?.type);
-              };
 
               return (
                 <span className={`block my-2.5 not-prose rounded-2xl border transition-all ${
@@ -160,7 +195,11 @@ export const MarkdownRenderer = ({ content, attachments = [], className = '' }) 
                         <span className={`block text-[11px] font-mono truncate ${
                           isAi ? 'text-emerald-700' : 'text-zinc-500'
                         }`}>
-                          {linkUrl.startsWith('data:') ? 'Attached Vault Document (Click to Open in New Tab)' : linkUrl}
+                          {linkUrl.startsWith('data:') 
+                            ? 'Attached Study Document (Click to Open in New Tab)' 
+                            : linkUrl.includes('drive.google.com') 
+                            ? 'Google Drive Attached Document (Click to Open)' 
+                            : linkUrl}
                         </span>
                       </span>
                     </span>
@@ -199,15 +238,10 @@ export const MarkdownRenderer = ({ content, attachments = [], className = '' }) 
             // Standard Inline Link
             return (
               <a
-                href={linkUrl}
+                href={attachment?.driveViewLink || linkUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={(e) => {
-                  if (linkUrl.startsWith('data:') || linkUrl.startsWith('attachment:') || isAttachment) {
-                    e.preventDefault();
-                    openAttachmentInNewTab(linkUrl, cleanText, attachment?.type);
-                  }
-                }}
+                onClick={handleOpen}
                 className="inline-flex items-center gap-1 font-semibold text-zinc-900 underline underline-offset-4 decoration-zinc-400 hover:decoration-black hover:text-black transition-colors cursor-pointer"
                 {...props}
               >

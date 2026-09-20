@@ -60,13 +60,13 @@ export const dataUrlToBlob = (dataUrl, filename = '', explicitMime = '') => {
 };
 
 /**
- * Opens any attachment (Base64 data URL, Blob URL, or HTTP link) in a new browser tab.
+ * Opens any attachment (Google Drive link, Base64 data URL, Blob URL, or HTTP link) in a new browser tab.
  * Handles images, PDFs, docx, docs, and other binary documents seamlessly without browser blocking.
  */
 export const openAttachmentInNewTab = async (dataOrUrl, filename = 'document', mimeType = '') => {
   if (!dataOrUrl) return;
 
-  // 1. Standard web URLs
+  // 1. Standard web / Google Drive URLs
   if (dataOrUrl.startsWith('http://') || dataOrUrl.startsWith('https://')) {
     window.open(dataOrUrl, '_blank', 'noopener,noreferrer');
     return;
@@ -80,9 +80,34 @@ export const openAttachmentInNewTab = async (dataOrUrl, filename = 'document', m
 
   // 3. Base64 Data URLs
   if (dataOrUrl.startsWith('data:')) {
+    // Open a blank new tab SYNCHRONOUSLY within the user click event to prevent popup blockers from killing async window.open
+    const win = window.open('', '_blank');
+    if (win) {
+      win.document.title = `Loading ${filename}...`;
+      win.document.body.style.margin = '0';
+      win.document.body.style.backgroundColor = '#09090b';
+      win.document.body.style.color = '#ffffff';
+      win.document.body.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+      win.document.body.style.display = 'flex';
+      win.document.body.style.alignItems = 'center';
+      win.document.body.style.justifyContent = 'center';
+      win.document.body.style.height = '100vh';
+      win.document.body.innerHTML = `
+        <div style="text-align: center;">
+          <div style="width: 44px; height: 44px; border: 3px solid #27272a; border-top-color: #38bdf8; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem;"></div>
+          <p style="font-weight: 700; font-size: 1.05rem; color: #fafafa;">Opening ${filename}...</p>
+          <p style="font-size: 0.8125rem; color: #71717a; margin-top: 0.25rem;">NOTEX Study Vault</p>
+          <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+        </div>
+      `;
+    }
+
     try {
       const blob = dataUrlToBlob(dataOrUrl, filename, mimeType);
-      if (!blob) return;
+      if (!blob) {
+        if (win) win.close();
+        return;
+      }
 
       const blobUrl = URL.createObjectURL(blob);
       const effectiveMime = blob.type;
@@ -93,10 +118,11 @@ export const openAttachmentInNewTab = async (dataOrUrl, filename = 'document', m
       const isText = effectiveMime.startsWith('text/') || lowerName.match(/\.(txt|md|json|js|jsx|py|java|c|cpp|html|xml|csv)$/i);
       const isDocx = lowerName.endsWith('.docx') || effectiveMime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
-      // For Images, PDFs, and Text files: open directly in a new tab via Blob URL
+      // For Images, PDFs, and Text files: navigate the opened window directly to blobUrl
       if (isPdf || isImage || isText) {
-        const win = window.open(blobUrl, '_blank');
-        if (!win) {
+        if (win) {
+          win.location.href = blobUrl;
+        } else {
           const a = document.createElement('a');
           a.href = blobUrl;
           a.target = '_blank';
@@ -338,8 +364,10 @@ export const openAttachmentInNewTab = async (dataOrUrl, filename = 'document', m
 
       const viewerBlob = new Blob([viewerPageHtml], { type: 'text/html;charset=utf-8' });
       const viewerUrl = URL.createObjectURL(viewerBlob);
-      const win = window.open(viewerUrl, '_blank');
-      if (!win) {
+
+      if (win) {
+        win.location.href = viewerUrl;
+      } else {
         const a = document.createElement('a');
         a.href = viewerUrl;
         a.target = '_blank';
@@ -349,12 +377,16 @@ export const openAttachmentInNewTab = async (dataOrUrl, filename = 'document', m
       }
     } catch (err) {
       console.error('Error opening attachment in new tab', err);
-      const a = document.createElement('a');
-      a.href = dataOrUrl;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      if (win) {
+        win.location.href = dataOrUrl;
+      } else {
+        const a = document.createElement('a');
+        a.href = dataOrUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
     }
   }
 };
