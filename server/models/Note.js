@@ -97,9 +97,30 @@ const saveFileNotes = (notes) => {
   fs.writeFileSync(NOTES_FILE, JSON.stringify(notes, null, 2));
 };
 
+const cloudflareD1 = require('../services/cloudflareD1Service');
+
 class FileNoteDoc {
   constructor(data) {
     Object.assign(this, data);
+    if (!this._id && this.id) {
+      this._id = this.id;
+    }
+    // Ensure tags and attachments are parsed if returned as strings from SQL
+    if (typeof this.tags === 'string') {
+      try {
+        this.tags = JSON.parse(this.tags);
+      } catch (e) {
+        this.tags = [];
+      }
+    }
+    if (typeof this.attachments === 'string') {
+      try {
+        this.attachments = JSON.parse(this.attachments);
+      } catch (e) {
+        this.attachments = [];
+      }
+    }
+    this.isFavorite = Boolean(this.isFavorite);
   }
 
   toJSON() {
@@ -109,13 +130,6 @@ class FileNoteDoc {
 
 const NoteProxy = {
   async create(noteData) {
-    if (dbConfig.isMongo) {
-      return await MongoNote.create(noteData);
-    }
-    const notes = loadFileNotes();
-    const now = new Date().toISOString();
-    
-    // Clean and normalize tags
     let tags = [];
     if (Array.isArray(noteData.tags)) {
       tags = noteData.tags.map(t => String(t).trim()).filter(Boolean);
@@ -123,18 +137,74 @@ const NoteProxy = {
       tags = noteData.tags.split(',').map(t => t.trim()).filter(Boolean);
     }
 
+    const attachments = Array.isArray(noteData.attachments) ? noteData.attachments : [];
+    const now = new Date().toISOString();
+    const noteId = 'note_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+    const userId = String(noteData.userId);
+    const folderId = noteData.folderId ? String(noteData.folderId) : null;
+    const title = noteData.title.trim();
+    const subject = noteData.subject.trim();
+    const content = noteData.content || '';
+    const isFavorite = noteData.isFavorite ? 1 : 0;
+    const chatGptUrl = noteData.chatGptUrl ? String(noteData.chatGptUrl).trim() : '';
+    const color = noteData.color || 'indigo';
+
+    if (dbConfig.isD1) {
+      await cloudflareD1.execute(
+        `INSERT INTO notes (id, userId, folderId, title, subject, content, tags, isFavorite, chatGptUrl, color, attachments, createdAt, updatedAt)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)`,
+        [
+          noteId,
+          userId,
+          folderId,
+          title,
+          subject,
+          content,
+          JSON.stringify(tags),
+          isFavorite,
+          chatGptUrl,
+          color,
+          JSON.stringify(attachments),
+          now,
+          now
+        ]
+      );
+
+      return new FileNoteDoc({
+        id: noteId,
+        _id: noteId,
+        userId,
+        folderId,
+        title,
+        subject,
+        content,
+        tags,
+        isFavorite: Boolean(isFavorite),
+        chatGptUrl,
+        color,
+        attachments,
+        createdAt: now,
+        updatedAt: now
+      });
+    }
+
+    if (dbConfig.isMongo) {
+      return await MongoNote.create(noteData);
+    }
+    const notes = loadFileNotes();
+
     const newNote = {
-      _id: 'note_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9),
-      userId: String(noteData.userId),
-      folderId: noteData.folderId ? String(noteData.folderId) : null,
-      title: noteData.title.trim(),
-      subject: noteData.subject.trim(),
-      content: noteData.content || '',
-      tags: tags,
-      isFavorite: Boolean(noteData.isFavorite),
-      chatGptUrl: noteData.chatGptUrl ? String(noteData.chatGptUrl).trim() : '',
-      color: noteData.color || 'indigo',
-      attachments: Array.isArray(noteData.attachments) ? noteData.attachments : [],
+      _id: noteId,
+      userId,
+      folderId,
+      title,
+      subject,
+      content,
+      tags,
+      isFavorite: Boolean(isFavorite),
+      chatGptUrl,
+      color,
+      attachments,
       createdAt: now,
       updatedAt: now
     };
@@ -145,6 +215,53 @@ const NoteProxy = {
   },
 
   async find(query = {}, sort = { updatedAt: -1 }) {
+    if (dbConfig.isD1) {
+      let sql = 'SELECT * FROM notes WHERE 1=1';
+      const params = [];
+      let paramIdx = 1;
+
+      if (query.userId) {
+        sql += ` AND userId = ?${paramIdx++}`;
+        params.push(String(query.userId));
+      }
+
+      if (query.folderId !== undefined) {
+        if (query.folderId === null || query.folderId === 'root') {
+          sql += ` AND (folderId IS NULL OR folderId = '')`;
+        } else {
+          sql += ` AND folderId = ?${paramIdx++}`;
+          params.push(String(query.folderId));
+        }
+      }
+
+      if (query.subject && query.subject !== 'all') {
+        sql += ` AND LOWER(subject) = LOWER(?${paramIdx++})`;
+        params.push(query.subject);
+      }
+
+      if (query.isFavorite !== undefined) {
+        sql += ` AND isFavorite = ?${paramIdx++}`;
+        params.push(query.isFavorite ? 1 : 0);
+      }
+
+      if (query.search) {
+        const searchTerm = `%${query.search.toLowerCase()}%`;
+        sql += ` AND (LOWER(title) LIKE ?${paramIdx} OR LOWER(subject) LIKE ?${paramIdx} OR LOWER(content) LIKE ?${paramIdx} OR LOWER(tags) LIKE ?${paramIdx})`;
+        params.push(searchTerm);
+        paramIdx++;
+      }
+
+      if (query.tag) {
+        const tagTerm = `%${query.tag.toLowerCase()}%`;
+        sql += ` AND LOWER(tags) LIKE ?${paramIdx++}`;
+        params.push(tagTerm);
+      }
+
+      sql += ' ORDER BY updatedAt DESC';
+      const rows = await cloudflareD1.query(sql, params);
+      return rows.map(r => new FileNoteDoc({ ...r, _id: r.id }));
+    }
+
     if (dbConfig.isMongo) {
       return await MongoNote.find(query).sort(sort);
     }
@@ -197,6 +314,14 @@ const NoteProxy = {
   },
 
   async findById(id) {
+    if (dbConfig.isD1) {
+      const rows = await cloudflareD1.query('SELECT * FROM notes WHERE id = ?1 LIMIT 1', [id]);
+      if (rows && rows.length > 0) {
+        return new FileNoteDoc({ ...rows[0], _id: rows[0].id });
+      }
+      return null;
+    }
+
     if (dbConfig.isMongo) {
       return await MongoNote.findById(id);
     }
@@ -206,6 +331,19 @@ const NoteProxy = {
   },
 
   async findOne(query) {
+    if (dbConfig.isD1) {
+      if (query._id && query.userId) {
+        const rows = await cloudflareD1.query('SELECT * FROM notes WHERE id = ?1 AND userId = ?2 LIMIT 1', [query._id, String(query.userId)]);
+        return rows && rows.length > 0 ? new FileNoteDoc({ ...rows[0], _id: rows[0].id }) : null;
+      }
+      if (query._id || query.id) {
+        const id = query._id || query.id;
+        const rows = await cloudflareD1.query('SELECT * FROM notes WHERE id = ?1 LIMIT 1', [id]);
+        return rows && rows.length > 0 ? new FileNoteDoc({ ...rows[0], _id: rows[0].id }) : null;
+      }
+      return null;
+    }
+
     if (dbConfig.isMongo) {
       return await MongoNote.findOne(query);
     }
@@ -220,6 +358,63 @@ const NoteProxy = {
   },
 
   async findByIdAndUpdate(id, updateData, options = {}) {
+    if (dbConfig.isD1) {
+      const existing = await cloudflareD1.query('SELECT * FROM notes WHERE id = ?1 LIMIT 1', [id]);
+      if (!existing || existing.length === 0) return null;
+
+      const current = existing[0];
+      const now = new Date().toISOString();
+
+      let tags = current.tags;
+      if (updateData.tags !== undefined) {
+        if (Array.isArray(updateData.tags)) {
+          tags = updateData.tags.map(t => String(t).trim()).filter(Boolean);
+        } else if (typeof updateData.tags === 'string') {
+          tags = updateData.tags.split(',').map(t => t.trim()).filter(Boolean);
+        }
+      } else if (typeof tags === 'string') {
+        try { tags = JSON.parse(tags); } catch(e) { tags = []; }
+      }
+
+      let attachments = current.attachments;
+      if (updateData.attachments !== undefined) {
+        attachments = Array.isArray(updateData.attachments) ? updateData.attachments : [];
+      } else if (typeof attachments === 'string') {
+        try { attachments = JSON.parse(attachments); } catch(e) { attachments = []; }
+      }
+
+      const title = updateData.title !== undefined ? updateData.title.trim() : current.title;
+      const subject = updateData.subject !== undefined ? updateData.subject.trim() : current.subject;
+      const content = updateData.content !== undefined ? updateData.content : current.content;
+      const folderId = updateData.folderId !== undefined ? (updateData.folderId ? String(updateData.folderId) : null) : current.folderId;
+      const isFavorite = updateData.isFavorite !== undefined ? (updateData.isFavorite ? 1 : 0) : current.isFavorite;
+      const chatGptUrl = updateData.chatGptUrl !== undefined ? String(updateData.chatGptUrl).trim() : current.chatGptUrl;
+      const color = updateData.color !== undefined ? updateData.color : current.color;
+
+      await cloudflareD1.execute(
+        `UPDATE notes SET title = ?1, subject = ?2, content = ?3, folderId = ?4, isFavorite = ?5, chatGptUrl = ?6, color = ?7, tags = ?8, attachments = ?9, updatedAt = ?10 WHERE id = ?11`,
+        [
+          title,
+          subject,
+          content,
+          folderId,
+          isFavorite,
+          chatGptUrl,
+          color,
+          JSON.stringify(tags),
+          JSON.stringify(attachments),
+          now,
+          id
+        ]
+      );
+
+      const updated = await cloudflareD1.query('SELECT * FROM notes WHERE id = ?1 LIMIT 1', [id]);
+      if (updated && updated.length > 0) {
+        return new FileNoteDoc({ ...updated[0], _id: updated[0].id });
+      }
+      return null;
+    }
+
     if (dbConfig.isMongo) {
       return await MongoNote.findByIdAndUpdate(id, updateData, { new: true, ...options });
     }
@@ -256,6 +451,14 @@ const NoteProxy = {
   },
 
   async findByIdAndDelete(id) {
+    if (dbConfig.isD1) {
+      const existing = await cloudflareD1.query('SELECT * FROM notes WHERE id = ?1 LIMIT 1', [id]);
+      if (!existing || existing.length === 0) return null;
+
+      await cloudflareD1.execute('DELETE FROM notes WHERE id = ?1', [id]);
+      return new FileNoteDoc({ ...existing[0], _id: existing[0].id });
+    }
+
     if (dbConfig.isMongo) {
       return await MongoNote.findByIdAndDelete(id);
     }
@@ -268,6 +471,10 @@ const NoteProxy = {
   },
 
   async countDocuments(query = {}) {
+    if (dbConfig.isD1) {
+      const notes = await this.find(query);
+      return notes.length;
+    }
     if (dbConfig.isMongo) {
       return await MongoNote.countDocuments(query);
     }
@@ -276,6 +483,10 @@ const NoteProxy = {
   },
 
   async getSubjects(userId) {
+    if (dbConfig.isD1) {
+      const rows = await cloudflareD1.query('SELECT DISTINCT subject FROM notes WHERE userId = ?1', [String(userId)]);
+      return (rows || []).map(r => r.subject).filter(Boolean);
+    }
     if (dbConfig.isMongo) {
       const distinctSubjects = await MongoNote.distinct('subject', { userId: String(userId) });
       return distinctSubjects;
@@ -287,3 +498,4 @@ const NoteProxy = {
 };
 
 module.exports = NoteProxy;
+

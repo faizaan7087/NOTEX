@@ -83,9 +83,21 @@ const saveFileShares = (shares) => {
   fs.writeFileSync(SHARES_FILE, JSON.stringify(shares, null, 2));
 };
 
+const cloudflareD1 = require('../services/cloudflareD1Service');
+
 class FileShareDoc {
   constructor(data) {
     Object.assign(this, data);
+    if (!this._id && this.id) {
+      this._id = this.id;
+    }
+    if (typeof this.snapshotData === 'string') {
+      try {
+        this.snapshotData = JSON.parse(this.snapshotData);
+      } catch (e) {
+        this.snapshotData = {};
+      }
+    }
   }
 
   toJSON() {
@@ -95,14 +107,57 @@ class FileShareDoc {
 
 const ShareLinkProxy = {
   async create(shareData) {
+    const now = new Date().toISOString();
+    const shareId = 'share_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+    const expiresAt = new Date(shareData.expiresAt).toISOString();
+    const snapshotData = shareData.snapshotData || {};
+
+    if (dbConfig.isD1) {
+      await cloudflareD1.execute(
+        `INSERT INTO share_links (id, shareCode, userId, authorName, authorCollege, authorEmail, folderName, totalNotes, totalSubfolders, snapshotData, expiresAt, createdAt, updatedAt)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)`,
+        [
+          shareId,
+          shareData.shareCode,
+          String(shareData.userId),
+          shareData.authorName,
+          shareData.authorCollege || '',
+          shareData.authorEmail || '',
+          shareData.folderName,
+          shareData.totalNotes || 0,
+          shareData.totalSubfolders || 0,
+          JSON.stringify(snapshotData),
+          expiresAt,
+          now,
+          now
+        ]
+      );
+
+      return new FileShareDoc({
+        id: shareId,
+        _id: shareId,
+        shareCode: shareData.shareCode,
+        userId: String(shareData.userId),
+        authorName: shareData.authorName,
+        authorCollege: shareData.authorCollege || '',
+        authorEmail: shareData.authorEmail || '',
+        folderName: shareData.folderName,
+        totalNotes: shareData.totalNotes || 0,
+        totalSubfolders: shareData.totalSubfolders || 0,
+        snapshotData,
+        expiresAt,
+        createdAt: now,
+        updatedAt: now
+      });
+    }
+
     if (dbConfig.isMongo) {
       return await MongoShareLink.create(shareData);
     }
     const shares = loadFileShares();
-    const now = new Date().toISOString();
 
     const newShare = {
-      _id: 'share_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9),
+      _id: shareId,
       shareCode: shareData.shareCode,
       userId: String(shareData.userId),
       authorName: shareData.authorName,
@@ -111,8 +166,8 @@ const ShareLinkProxy = {
       folderName: shareData.folderName,
       totalNotes: shareData.totalNotes || 0,
       totalSubfolders: shareData.totalSubfolders || 0,
-      snapshotData: shareData.snapshotData || {},
-      expiresAt: new Date(shareData.expiresAt).toISOString(),
+      snapshotData: snapshotData,
+      expiresAt: expiresAt,
       createdAt: now,
       updatedAt: now
     };
@@ -123,6 +178,17 @@ const ShareLinkProxy = {
   },
 
   async findOne(query) {
+    if (dbConfig.isD1) {
+      let rows = [];
+      if (query.shareCode) {
+        rows = await cloudflareD1.query('SELECT * FROM share_links WHERE shareCode = ?1 LIMIT 1', [query.shareCode]);
+      } else if (query._id || query.id) {
+        const id = query._id || query.id;
+        rows = await cloudflareD1.query('SELECT * FROM share_links WHERE id = ?1 LIMIT 1', [id]);
+      }
+      return rows && rows.length > 0 ? new FileShareDoc({ ...rows[0], _id: rows[0].id }) : null;
+    }
+
     if (dbConfig.isMongo) {
       return await MongoShareLink.findOne(query);
     }
@@ -137,6 +203,18 @@ const ShareLinkProxy = {
   },
 
   async find(query = {}) {
+    if (dbConfig.isD1) {
+      let sql = 'SELECT * FROM share_links WHERE 1=1';
+      const params = [];
+      if (query.userId) {
+        sql += ' AND userId = ?1';
+        params.push(String(query.userId));
+      }
+      sql += ' ORDER BY createdAt DESC';
+      const rows = await cloudflareD1.query(sql, params);
+      return rows.map(r => new FileShareDoc({ ...r, _id: r.id }));
+    }
+
     if (dbConfig.isMongo) {
       return await MongoShareLink.find(query);
     }
@@ -148,6 +226,14 @@ const ShareLinkProxy = {
   },
 
   async findByIdAndDelete(id) {
+    if (dbConfig.isD1) {
+      const existing = await cloudflareD1.query('SELECT * FROM share_links WHERE id = ?1 LIMIT 1', [id]);
+      if (!existing || existing.length === 0) return null;
+
+      await cloudflareD1.execute('DELETE FROM share_links WHERE id = ?1', [id]);
+      return new FileShareDoc({ ...existing[0], _id: existing[0].id });
+    }
+
     if (dbConfig.isMongo) {
       return await MongoShareLink.findByIdAndDelete(id);
     }
@@ -161,3 +247,4 @@ const ShareLinkProxy = {
 };
 
 module.exports = ShareLinkProxy;
+

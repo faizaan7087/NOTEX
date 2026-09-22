@@ -59,6 +59,7 @@
                                         ▼
              ┌────────────────────────────────────────────────────────┐
              │                   Database Layer                       │
+             │   - Cloudflare D1 (5 GB Free Serverless SQL Database)  │
              │   - MongoDB (Cloud Atlas / Mongoose)                   │
              │   - Persistent JSON Store (Zero-Dependency Fallback)   │
              └────────────────────────────────────────────────────────┘

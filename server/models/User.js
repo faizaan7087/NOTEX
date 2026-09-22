@@ -113,12 +113,18 @@ const saveFileUsers = (users) => {
   fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
 };
 
+const cloudflareD1 = require('../services/cloudflareD1Service');
+
 class FileUserDoc {
   constructor(data) {
     Object.assign(this, data);
+    if (!this._id && this.id) {
+      this._id = this.id;
+    }
   }
 
   async matchPassword(enteredPassword) {
+    if (!this.password) return false;
     return await bcrypt.compare(enteredPassword, this.password);
   }
 
@@ -129,8 +135,66 @@ class FileUserDoc {
 }
 
 const UserProxy = {
-  // Check if mongo is active
   async create(userData) {
+    if (dbConfig.isD1) {
+      const existing = await cloudflareD1.query('SELECT id FROM users WHERE LOWER(email) = ?1 LIMIT 1', [userData.email.toLowerCase().trim()]);
+      if (existing && existing.length > 0) {
+        const err = new Error('User already exists with this email');
+        err.code = 11000;
+        throw err;
+      }
+      let hashedPassword = '';
+      if (userData.password) {
+        const salt = await bcrypt.genSalt(10);
+        hashedPassword = await bcrypt.hash(userData.password, salt);
+      }
+      const now = new Date().toISOString();
+      const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+      const userRecord = {
+        id: userId,
+        name: userData.name.trim(),
+        email: userData.email.toLowerCase().trim(),
+        password: hashedPassword,
+        googleId: userData.googleId || '',
+        avatar: userData.avatar || '',
+        googleAccessToken: userData.googleAccessToken || '',
+        googleRefreshToken: userData.googleRefreshToken || '',
+        driveRootFolderId: userData.driveRootFolderId || '',
+        college: userData.college || '',
+        semester: userData.semester || '',
+        location: userData.location || '',
+        bio: userData.bio || '',
+        isProfileCompleted: userData.isProfileCompleted ? 1 : 0,
+        createdAt: now,
+        updatedAt: now
+      };
+
+      await cloudflareD1.execute(
+        `INSERT INTO users (id, name, email, password, googleId, avatar, googleAccessToken, googleRefreshToken, driveRootFolderId, college, semester, location, bio, isProfileCompleted, createdAt, updatedAt)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)`,
+        [
+          userRecord.id,
+          userRecord.name,
+          userRecord.email,
+          userRecord.password,
+          userRecord.googleId,
+          userRecord.avatar,
+          userRecord.googleAccessToken,
+          userRecord.googleRefreshToken,
+          userRecord.driveRootFolderId,
+          userRecord.college,
+          userRecord.semester,
+          userRecord.location,
+          userRecord.bio,
+          userRecord.isProfileCompleted,
+          userRecord.createdAt,
+          userRecord.updatedAt
+        ]
+      );
+
+      return new FileUserDoc({ ...userRecord, _id: userId, isProfileCompleted: Boolean(userRecord.isProfileCompleted) });
+    }
+
     if (dbConfig.isMongo) {
       return await MongoUser.create(userData);
     }
@@ -171,6 +235,23 @@ const UserProxy = {
   },
 
   async findOne(query) {
+    if (dbConfig.isD1) {
+      let rows = [];
+      if (query.email) {
+        rows = await cloudflareD1.query('SELECT * FROM users WHERE LOWER(email) = ?1 LIMIT 1', [query.email.toLowerCase().trim()]);
+      } else if (query.googleId) {
+        rows = await cloudflareD1.query('SELECT * FROM users WHERE googleId = ?1 LIMIT 1', [query.googleId]);
+      } else if (query._id || query.id) {
+        const id = query._id || query.id;
+        rows = await cloudflareD1.query('SELECT * FROM users WHERE id = ?1 LIMIT 1', [id]);
+      }
+      if (rows && rows.length > 0) {
+        const row = rows[0];
+        return new FileUserDoc({ ...row, _id: row.id, isProfileCompleted: Boolean(row.isProfileCompleted) });
+      }
+      return null;
+    }
+
     if (dbConfig.isMongo) {
       return await MongoUser.findOne(query);
     }
@@ -187,6 +268,15 @@ const UserProxy = {
   },
 
   async findById(id) {
+    if (dbConfig.isD1) {
+      const rows = await cloudflareD1.query('SELECT * FROM users WHERE id = ?1 LIMIT 1', [id]);
+      if (rows && rows.length > 0) {
+        const row = rows[0];
+        return new FileUserDoc({ ...row, _id: row.id, isProfileCompleted: Boolean(row.isProfileCompleted) });
+      }
+      return null;
+    }
+
     if (dbConfig.isMongo) {
       return await MongoUser.findById(id);
     }
@@ -196,6 +286,56 @@ const UserProxy = {
   },
 
   async findByIdAndUpdate(id, updateData, options = {}) {
+    if (dbConfig.isD1) {
+      const existingRows = await cloudflareD1.query('SELECT * FROM users WHERE id = ?1 LIMIT 1', [id]);
+      if (!existingRows || existingRows.length === 0) return null;
+      
+      const current = existingRows[0];
+      const now = new Date().toISOString();
+      const fieldsToUpdate = {
+        name: updateData.name !== undefined ? updateData.name.trim() : current.name,
+        email: updateData.email !== undefined ? updateData.email.toLowerCase().trim() : current.email,
+        googleId: updateData.googleId !== undefined ? updateData.googleId : current.googleId,
+        avatar: updateData.avatar !== undefined ? updateData.avatar : current.avatar,
+        googleAccessToken: updateData.googleAccessToken !== undefined ? updateData.googleAccessToken : current.googleAccessToken,
+        googleRefreshToken: updateData.googleRefreshToken !== undefined ? updateData.googleRefreshToken : current.googleRefreshToken,
+        driveRootFolderId: updateData.driveRootFolderId !== undefined ? updateData.driveRootFolderId : current.driveRootFolderId,
+        college: updateData.college !== undefined ? updateData.college : current.college,
+        semester: updateData.semester !== undefined ? updateData.semester : current.semester,
+        location: updateData.location !== undefined ? updateData.location : current.location,
+        bio: updateData.bio !== undefined ? updateData.bio : current.bio,
+        isProfileCompleted: updateData.isProfileCompleted !== undefined ? (updateData.isProfileCompleted ? 1 : 0) : current.isProfileCompleted,
+        updatedAt: now
+      };
+
+      await cloudflareD1.execute(
+        `UPDATE users SET name = ?1, email = ?2, googleId = ?3, avatar = ?4, googleAccessToken = ?5, googleRefreshToken = ?6, driveRootFolderId = ?7, college = ?8, semester = ?9, location = ?10, bio = ?11, isProfileCompleted = ?12, updatedAt = ?13 WHERE id = ?14`,
+        [
+          fieldsToUpdate.name,
+          fieldsToUpdate.email,
+          fieldsToUpdate.googleId,
+          fieldsToUpdate.avatar,
+          fieldsToUpdate.googleAccessToken,
+          fieldsToUpdate.googleRefreshToken,
+          fieldsToUpdate.driveRootFolderId,
+          fieldsToUpdate.college,
+          fieldsToUpdate.semester,
+          fieldsToUpdate.location,
+          fieldsToUpdate.bio,
+          fieldsToUpdate.isProfileCompleted,
+          fieldsToUpdate.updatedAt,
+          id
+        ]
+      );
+
+      const updatedRows = await cloudflareD1.query('SELECT * FROM users WHERE id = ?1 LIMIT 1', [id]);
+      if (updatedRows && updatedRows.length > 0) {
+        const u = updatedRows[0];
+        return new FileUserDoc({ ...u, _id: u.id, isProfileCompleted: Boolean(u.isProfileCompleted) });
+      }
+      return null;
+    }
+
     if (dbConfig.isMongo) {
       return await MongoUser.findByIdAndUpdate(id, updateData, options);
     }
@@ -212,6 +352,10 @@ const UserProxy = {
   },
 
   async countDocuments() {
+    if (dbConfig.isD1) {
+      const rows = await cloudflareD1.query('SELECT COUNT(*) as cnt FROM users');
+      return (rows && rows[0] && rows[0].cnt) || 0;
+    }
     if (dbConfig.isMongo) {
       return await MongoUser.countDocuments();
     }
@@ -220,3 +364,4 @@ const UserProxy = {
 };
 
 module.exports = UserProxy;
+

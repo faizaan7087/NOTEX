@@ -1,9 +1,9 @@
+const dotenv = require('dotenv');
+dotenv.config();
+
 const User = require('./models/User');
 const Note = require('./models/Note');
 const { connectDB } = require('./config/db');
-const dotenv = require('dotenv');
-
-dotenv.config();
 
 const sampleNotes = [
   {

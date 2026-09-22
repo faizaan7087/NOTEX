@@ -30,6 +30,11 @@ logs/
 *.sln
 *.sw?
 
+# Local Database / Fallback Data
+server/data/
+server/data/*.json
+
 # OS metadata
 .DS_Store
 Thumbs.db
+
