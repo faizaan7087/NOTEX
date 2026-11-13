@@ -24,6 +24,8 @@ import {
   Bell
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
+import notexLogoTransparent from '../../assets/notex-logo-transparent.png';
+import notexLogoDark from '../../assets/notex-logo-dark.png';
 
 export const Navbar = ({
   onToggleSidebar,
@@ -149,7 +151,7 @@ export const Navbar = ({
             >
               <div className="flex items-center justify-center w-7 h-7 group-hover:scale-105 transition-transform shrink-0">
                 <img
-                  src={isAIPage ? "/notex-logo-dark.png" : "/notex-logo-transparent.png"}
+                  src={isAIPage ? notexLogoDark : notexLogoTransparent}
                   alt="NOTEX Logo"
                   className="w-full h-full object-contain"
                 />

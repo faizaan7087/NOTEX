@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Modal } from '../ui/modal';
 import { APP_NAME, APP_CONFIG } from '../../constants/app';
+import notexLogoTransparent from '../../assets/notex-logo-transparent.png';
 
 export const Footer = ({ navigateTo, isAIPage = false }) => {
   const [activeModal, setActiveModal] = useState(null);
@@ -43,7 +44,7 @@ export const Footer = ({ navigateTo, isAIPage = false }) => {
             <div className="lg:col-span-2 space-y-4 pr-0 lg:pr-6">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-zinc-100 flex items-center justify-center p-1 border border-zinc-200/80 shadow-2xs shrink-0">
-                  <img src="/notex-logo-transparent.png" alt="NOTEX Logo" className="w-full h-full object-contain" />
+                  <img src={notexLogoTransparent} alt="NOTEX Logo" className="w-full h-full object-contain" />
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-display font-extrabold text-base tracking-tight text-zinc-950">
