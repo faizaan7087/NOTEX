@@ -6,16 +6,13 @@ import { api } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import { 
   DownloadCloud, 
-  User, 
   GraduationCap, 
   Clock, 
   AlertCircle, 
-  CheckCircle2, 
   Folder, 
   Layers, 
   FileText,
   Search,
-  Sparkles,
   Paperclip
 } from 'lucide-react';
 
@@ -182,7 +179,7 @@ export const ImportSharedModal = ({
 
                 <div className="text-right">
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-800 border border-zinc-700 text-[11px] text-zinc-300 font-mono">
-                    <Clock className="w-3.5 h-3.5 text-amber-400" />
+                    <Clock className="w-3.5 h-3.5 text-zinc-500" />
                     <span>Valid until: {new Date(sharedRepo.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                   </div>
                 </div>

@@ -11,7 +11,6 @@ import {
   RefreshCw, 
   CheckCircle2, 
   Code2, 
-  Layers,
   ArrowRight
 } from 'lucide-react';
 
@@ -104,7 +103,7 @@ export const XMLDemoPage = ({ subjects = [], onNavigate }) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="p-5 rounded-2xl border border-zinc-200 bg-white shadow-sm space-y-2">
           <div className="flex items-center gap-2 text-zinc-950 font-semibold text-sm">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <CheckCircle2 className="w-4 h-4 text-zinc-950" />
             <span>1. XML Tree Hierarchy</span>
           </div>
           <p className="text-xs text-zinc-500 leading-relaxed">
@@ -114,7 +113,7 @@ export const XMLDemoPage = ({ subjects = [], onNavigate }) => {
 
         <div className="p-5 rounded-2xl border border-zinc-200 bg-white shadow-sm space-y-2">
           <div className="flex items-center gap-2 text-zinc-950 font-semibold text-sm">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <CheckCircle2 className="w-4 h-4 text-zinc-950" />
             <span>2. REST API Integration</span>
           </div>
           <p className="text-xs text-zinc-500 leading-relaxed">
@@ -124,7 +123,7 @@ export const XMLDemoPage = ({ subjects = [], onNavigate }) => {
 
         <div className="p-5 rounded-2xl border border-zinc-200 bg-white shadow-sm space-y-2">
           <div className="flex items-center gap-2 text-zinc-950 font-semibold text-sm">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <CheckCircle2 className="w-4 h-4 text-zinc-950" />
             <span>3. Cross-Device Portability</span>
           </div>
           <p className="text-xs text-zinc-500 leading-relaxed">
@@ -175,8 +174,8 @@ export const XMLDemoPage = ({ subjects = [], onNavigate }) => {
             >
               {copied ? (
                 <>
-                  <Check className="w-4 h-4 text-emerald-600" />
-                  <span className="text-emerald-700">Copied</span>
+                  <Check className="w-4 h-4 text-zinc-950" />
+                  <span className="text-zinc-950">Copied</span>
                 </>
               ) : (
                 <>

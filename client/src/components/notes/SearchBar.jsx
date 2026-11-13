@@ -24,30 +24,30 @@ export const SearchBar = ({
       </div>
 
       {/* Sort & Filter Controls */}
-      <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
+      <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
         {/* Starred filter button */}
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.96 }}
           onClick={onToggleFavoritesOnly}
-          className={`flex items-center gap-1.5 h-11 px-3.5 rounded-2xl text-xs font-semibold border transition-all shadow-2xs ${
+          className={`flex items-center justify-center gap-1.5 h-11 px-3.5 rounded-2xl text-xs font-semibold border transition-all shadow-2xs flex-1 sm:flex-none ${
             showFavoritesOnly
               ? 'bg-black text-white border-black shadow-xs'
               : 'bg-white/90 text-zinc-700 border-zinc-200/90 hover:text-black hover:border-zinc-300'
           }`}
           title="Filter starred notes"
         >
-          <Star className={`w-3.5 h-3.5 ${showFavoritesOnly ? 'fill-white text-white' : 'text-amber-500 fill-amber-400'}`} />
+          <Star className={`w-3.5 h-3.5 ${showFavoritesOnly ? 'fill-white text-white' : 'text-zinc-950 fill-zinc-950'}`} />
           <span>Starred</span>
         </motion.button>
 
         {/* Sort Select Dropdown */}
-        <div className="relative flex items-center">
+        <div className="relative flex-1 sm:flex-initial flex items-center">
           <ArrowUpDown className="absolute left-3.5 w-3.5 h-3.5 text-zinc-400 pointer-events-none" />
           <select
             value={sortBy}
             onChange={(e) => onSortChange(e.target.value)}
-            className="h-11 pl-9 pr-8 text-xs font-semibold bg-white/90 border border-zinc-200/90 rounded-2xl text-zinc-800 focus:outline-none focus:border-black shadow-2xs cursor-pointer appearance-none"
+            className="w-full sm:w-auto h-11 pl-9 pr-8 text-xs font-semibold bg-white/90 border border-zinc-200/90 rounded-2xl text-zinc-800 focus:outline-none focus:border-black shadow-2xs cursor-pointer appearance-none"
           >
             <option value="newest">Newest First</option>
             <option value="oldest">Oldest First</option>

@@ -15,18 +15,17 @@ import {
   Layers, 
   Share2,
   DownloadCloud,
-  Sparkles,
   Send
 } from 'lucide-react';
 
 const FOLDER_COLOR_CLASSES = {
-  indigo: 'text-indigo-600 bg-indigo-50 border-indigo-200 group-hover:bg-indigo-600 group-hover:text-white',
-  emerald: 'text-emerald-600 bg-emerald-50 border-emerald-200 group-hover:bg-emerald-600 group-hover:text-white',
-  amber: 'text-amber-600 bg-amber-50 border-amber-200 group-hover:bg-amber-600 group-hover:text-white',
-  rose: 'text-rose-600 bg-rose-50 border-rose-200 group-hover:bg-rose-600 group-hover:text-white',
-  sky: 'text-sky-600 bg-sky-50 border-sky-200 group-hover:bg-sky-600 group-hover:text-white',
-  purple: 'text-purple-600 bg-purple-50 border-purple-200 group-hover:bg-purple-600 group-hover:text-white',
-  zinc: 'text-zinc-700 bg-zinc-100 border-zinc-200 group-hover:bg-zinc-800 group-hover:text-white'
+  indigo: 'text-zinc-900 bg-zinc-100 border-zinc-200 group-hover:bg-zinc-950 group-hover:text-white',
+  emerald: 'text-zinc-900 bg-zinc-100 border-zinc-200 group-hover:bg-zinc-950 group-hover:text-white',
+  amber: 'text-zinc-900 bg-zinc-100 border-zinc-200 group-hover:bg-zinc-950 group-hover:text-white',
+  rose: 'text-zinc-900 bg-zinc-100 border-zinc-200 group-hover:bg-zinc-950 group-hover:text-white',
+  sky: 'text-zinc-900 bg-zinc-100 border-zinc-200 group-hover:bg-zinc-950 group-hover:text-white',
+  purple: 'text-zinc-900 bg-zinc-100 border-zinc-200 group-hover:bg-zinc-950 group-hover:text-white',
+  zinc: 'text-zinc-900 bg-zinc-100 border-zinc-200 group-hover:bg-zinc-950 group-hover:text-white'
 };
 
 export const FolderExplorer = ({

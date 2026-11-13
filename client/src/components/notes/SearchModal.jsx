@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Clock, Tag as TagIcon, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { BookOpen, Tag as TagIcon, ArrowRight } from 'lucide-react';
 import { GooeyInput } from '../ui/GooeyInput';
 import { Badge } from '../ui/badge';
 

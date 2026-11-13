@@ -1,6 +1,5 @@
 import React from 'react';
 import { NoteForm } from '../components/notes/NoteForm';
-import { Button } from '../components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 
 export const NoteFormPage = ({

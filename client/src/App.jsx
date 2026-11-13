@@ -12,7 +12,6 @@ import { Footer } from './components/layout/Footer';
 import { BackgroundGrid } from './components/ui/BackgroundGrid';
 import { FloatingDock } from './components/ui/FloatingDock';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
 import { cn } from './utils/cn';
 
 // Pages

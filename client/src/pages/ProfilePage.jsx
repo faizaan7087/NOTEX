@@ -4,7 +4,6 @@ import { useToast } from '../context/ToastContext';
 import { api } from '../services/api';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
-import { APP_NAME, APP_CONFIG } from '../constants/app';
 import { 
   User, 
   Mail, 
@@ -15,18 +14,22 @@ import {
   HardDrive, 
   Sparkles, 
   CheckCircle2, 
-  ArrowRight,
-  ShieldCheck,
-  Camera,
-  Layers
+  ArrowRight
 } from 'lucide-react';
+import avatar1 from '../assets/avatars/avatar1.svg';
+import avatar2 from '../assets/avatars/avatar2.svg';
+import avatar3 from '../assets/avatars/avatar3.svg';
+import avatar4 from '../assets/avatars/avatar4.svg';
+import avatar5 from '../assets/avatars/avatar5.svg';
+import avatar6 from '../assets/avatars/avatar6.svg';
 
 const AVATAR_PRESETS = [
-  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=120&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80'
+  avatar1,
+  avatar2,
+  avatar3,
+  avatar4,
+  avatar5,
+  avatar6
 ];
 
 export const ProfilePage = ({ onCompleteOnboarding, isFirstTime = false }) => {
@@ -109,7 +112,7 @@ export const ProfilePage = ({ onCompleteOnboarding, isFirstTime = false }) => {
           <div className="flex items-center gap-3">
             <div className="p-4 rounded-2xl bg-white/90 border border-zinc-200 shadow-2xs space-y-1">
               <div className="flex items-center gap-2 text-xs font-bold text-zinc-900">
-                <HardDrive className={`w-4 h-4 ${isDriveConnected ? 'text-emerald-600' : 'text-zinc-500'}`} />
+                <HardDrive className={`w-4 h-4 ${isDriveConnected ? 'text-zinc-950' : 'text-zinc-500'}`} />
                 <span>{isDriveConnected ? 'Google Drive Active' : 'Local Workspace'}</span>
               </div>
               <p className="text-[11px] text-zinc-500 font-mono">

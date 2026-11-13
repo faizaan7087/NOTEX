@@ -16,11 +16,7 @@ import {
   FileText, 
   Download, 
   ExternalLink, 
-  Eye, 
   Maximize2, 
-  Bot, 
-  Link as LinkIcon, 
-  Globe, 
   X, 
   Sparkles,
   Layers
@@ -127,14 +123,14 @@ export const NoteViewer = ({
             </div>
 
             {/* Quick Toolbar */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-1.5">
               <button
                 type="button"
                 onClick={handleOpenVisualLearning}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow-sm cursor-pointer border border-indigo-400/30"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-bold transition-all shadow-sm cursor-pointer border border-zinc-800"
                 title="Open in NOTEX AI Visual Learning Workspace"
               >
-                <Layers className="w-3.5 h-3.5 text-indigo-200" />
+                <Layers className="w-3.5 h-3.5 text-zinc-300" />
                 <span>Visual Canvas AI</span>
               </button>
 
@@ -145,7 +141,7 @@ export const NoteViewer = ({
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-950 text-white hover:bg-black text-xs font-bold transition-all shadow-2xs cursor-pointer border border-zinc-800"
                   title="Learn with Arex on Interactive Whiteboard"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400 fill-amber-400/20" />
+                  <Sparkles className="w-3.5 h-3.5" />
                   <span>Ask Arex</span>
                 </button>
               )}
@@ -156,7 +152,7 @@ export const NoteViewer = ({
                 className="p-2 rounded-xl bg-white hover:bg-zinc-100 text-zinc-700 hover:text-black border border-zinc-200 transition-all shadow-2xs cursor-pointer"
                 title={copied ? "Copied to clipboard!" : "Copy note content"}
               >
-                {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                {copied ? <Check className="w-4 h-4 text-zinc-950" /> : <Copy className="w-4 h-4" />}
               </button>
 
               <button
@@ -316,7 +312,7 @@ export const NoteViewer = ({
                     <div className="flex items-center gap-3 min-w-0 pr-2">
                       <div className="w-10 h-10 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center shrink-0">
                         {isPdf ? (
-                          <FileText className="w-5 h-5 text-rose-600" />
+                          <FileText className="w-5 h-5 text-zinc-700" />
                         ) : (
                           <Paperclip className="w-5 h-5 text-zinc-600" />
                         )}

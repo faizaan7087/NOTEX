@@ -8,11 +8,8 @@ import {
   Bot, 
   Globe, 
   FileText, 
-  Paperclip, 
   Video, 
-  Code2, 
-  Maximize2,
-  Download
+  Code2
 } from 'lucide-react';
 import { openAttachmentInNewTab } from '../../utils/fileHelper';
 
@@ -300,7 +297,7 @@ export const MarkdownRenderer = ({ content, attachments = [], className = '', is
                           className="p-1.5 text-zinc-500 hover:text-black hover:bg-zinc-200/70 rounded-lg transition-colors cursor-pointer"
                           title="Copy Link"
                         >
-                          {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                          {isCopied ? <Check className="w-3.5 h-3.5 text-zinc-950" /> : <Copy className="w-3.5 h-3.5" />}
                         </button>
                       )}
 
@@ -458,8 +455,8 @@ export const MarkdownRenderer = ({ content, attachments = [], className = '', is
                   >
                     {copiedLink === 'code_' + codeString.slice(0, 10) ? (
                       <>
-                        <Check className="w-3 h-3 text-emerald-400" />
-                        <span className="text-emerald-400">Copied</span>
+                        <Check className="w-3 h-3 text-white" />
+                        <span className="text-white">Copied</span>
                       </>
                     ) : (
                       <>

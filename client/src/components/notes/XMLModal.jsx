@@ -8,8 +8,7 @@ import {
   FileCode2, 
   Download, 
   Copy, 
-  Check, 
-  Code2
+  Check
 } from 'lucide-react';
 
 export const XMLModal = ({
@@ -156,8 +155,8 @@ export const XMLModal = ({
             >
               {copied ? (
                 <>
-                  <Check className="w-4 h-4 text-emerald-600" />
-                  <span className="text-emerald-700">Copied</span>
+                  <Check className="w-4 h-4 text-zinc-950" />
+                  <span className="text-zinc-950">Copied</span>
                 </>
               ) : (
                 <>

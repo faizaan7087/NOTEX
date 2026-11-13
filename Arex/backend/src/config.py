@@ -8,8 +8,9 @@ import sys
 from pathlib import Path
 
 logger = logging.getLogger("agent.config")
-LOCAL_ENV_FILE = Path(__file__).resolve().parents[1] / ".env.local"
-ROOT_ENV_FILE = Path(__file__).resolve().parents[3] / ".env"
+_parents = Path(__file__).resolve().parents
+LOCAL_ENV_FILE = _parents[1] / ".env.local" if len(_parents) > 1 else Path(".env.local")
+ROOT_ENV_FILE = _parents[3] / ".env" if len(_parents) > 3 else Path(".env")
 
 REQUIRED_ENV_VARS = [
     ("GOOGLE_API_KEY", "Google Gemini API key running real-time voice, vision & reasoning."),

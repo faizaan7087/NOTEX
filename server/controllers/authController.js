@@ -314,7 +314,7 @@ const googleLoginUser = async (req, res) => {
         googleAccessToken: accessToken || '',
         googleRefreshToken: refreshToken || '',
         driveRootFolderId: driveRootFolderId || '',
-        college: 'Google Academic User',
+        college: '',
         semester: 'Active Student'
       });
     }

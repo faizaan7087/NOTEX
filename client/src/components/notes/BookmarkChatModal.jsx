@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Modal } from '../ui/modal';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -8,12 +8,10 @@ import {
   Bot, 
   ExternalLink, 
   Folder, 
-  Sparkles, 
   ClipboardPaste, 
   CheckCircle2, 
   BookOpen, 
-  Tag as TagIcon,
-  HelpCircle
+  Tag as TagIcon
 } from 'lucide-react';
 
 export const BookmarkChatModal = ({
@@ -124,7 +122,7 @@ export const BookmarkChatModal = ({
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <label className="block text-xs font-bold uppercase tracking-wider text-zinc-700 flex items-center gap-1.5">
-              <Bot className="w-4 h-4 text-emerald-600" />
+              <Bot className="w-4 h-4 text-zinc-950" />
               <span>ChatGPT Share Link *</span>
             </label>
             <button
@@ -151,7 +149,7 @@ export const BookmarkChatModal = ({
                 href={chatGptUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-emerald-600 p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-black p-1"
                 title="Open link in new tab to test"
               >
                 <ExternalLink className="w-4 h-4" />
@@ -159,8 +157,8 @@ export const BookmarkChatModal = ({
             )}
           </div>
           {chatGptUrl && isGptLink && (
-            <p className="text-[11px] text-emerald-600 flex items-center gap-1 font-medium">
-              <CheckCircle2 className="w-3.5 h-3.5" />
+            <p className="text-[11px] text-zinc-700 flex items-center gap-1 font-medium">
+              <CheckCircle2 className="w-3.5 h-3.5 text-zinc-950" />
               <span>Valid AI share link detected</span>
             </p>
           )}
@@ -276,7 +274,7 @@ export const BookmarkChatModal = ({
             loading={loading}
             className="bg-black hover:bg-zinc-800 text-white font-bold"
           >
-            <Bot className="w-3.5 h-3.5 mr-1 text-emerald-400" />
+            <Bot className="w-3.5 h-3.5 mr-1 text-white" />
             <span>Save ChatGPT Link</span>
           </Button>
         </div>

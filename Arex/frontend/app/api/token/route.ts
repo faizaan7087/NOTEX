@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     const apiKey = process.env.LIVEKIT_API_KEY;
     const apiSecret = process.env.LIVEKIT_API_SECRET;
     const livekitUrl = process.env.LIVEKIT_URL;
-    const agentName = process.env.AGENT_NAME;
+    const agentName = process.env.AGENT_NAME || 'nova-te';
 
     if (!livekitUrl) {
       throw new Error('LIVEKIT_URL is not defined in environment');

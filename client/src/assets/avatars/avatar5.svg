@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="bg5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#18181B"/>
+      <stop offset="100%" stop-color="#27272A"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="120" height="120" rx="28" fill="url(#bg5)"/>
+
+  <!-- Owl Body -->
+  <ellipse cx="60" cy="72" rx="30" ry="34" fill="#A1A1AA"/>
+  <!-- Belly -->
+  <ellipse cx="60" cy="78" rx="20" ry="22" fill="#F4F4F5"/>
+  <!-- Feather marks -->
+  <path d="M52 72 Q56 75 60 72 Q64 75 68 72" fill="none" stroke="#D4D4D8" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M54 80 Q58 83 62 80 Q66 83 70 80" fill="none" stroke="#D4D4D8" stroke-width="1.8" stroke-linecap="round"/>
+
+  <!-- Owl Wings -->
+  <path d="M30 65 Q24 82 32 94 Q36 86 36 72 Z" fill="#71717A"/>
+  <path d="M90 65 Q96 82 88 94 Q84 86 84 72 Z" fill="#71717A"/>
+
+  <!-- Owl Ear Tufts -->
+  <polygon points="38,34 30,18 48,26" fill="#71717A"/>
+  <polygon points="82,34 90,18 72,26" fill="#71717A"/>
+
+  <!-- Big Owl Eyes Outer -->
+  <circle cx="48" cy="52" r="14" fill="#FFFFFF" stroke="#71717A" stroke-width="1.5"/>
+  <circle cx="72" cy="52" r="14" fill="#FFFFFF" stroke="#71717A" stroke-width="1.5"/>
+
+  <!-- Big Owl Eye Irises -->
+  <circle cx="50" cy="52" r="8" fill="#18181B"/>
+  <circle cx="48" cy="50" r="3" fill="#FFFFFF"/>
+  <circle cx="70" cy="52" r="8" fill="#18181B"/>
+  <circle cx="68" cy="50" r="3" fill="#FFFFFF"/>
+
+  <!-- Scholar Spectacles -->
+  <circle cx="48" cy="52" r="15" fill="none" stroke="#F59E0B" stroke-width="2.5"/>
+  <circle cx="72" cy="52" r="15" fill="none" stroke="#F59E0B" stroke-width="2.5"/>
+  <line x1="63" y1="52" x2="57" y2="52" stroke="#F59E0B" stroke-width="2.5"/>
+
+  <!-- Beak -->
+  <polygon points="60,61 56,56 64,56" fill="#F97316"/>
+
+  <!-- Graduation Cap (Mortarboard) -->
+  <polygon points="60,18 92,26 60,34 28,26" fill="#18181B" stroke="#3F3F46" stroke-width="1"/>
+  <rect x="48" y="29" width="24" height="7" rx="2" fill="#27272A"/>
+  <!-- Tassel -->
+  <circle cx="60" cy="26" r="2.5" fill="#EAB308"/>
+  <path d="M60 26 Q74 28 78 38 L80 44" fill="none" stroke="#EAB308" stroke-width="1.8" stroke-linecap="round"/>
+  <polygon points="78,44 82,44 80,48" fill="#EAB308"/>
+
+  <!-- Cute Bowtie -->
+  <polygon points="54,98 60,95 54,92" fill="#EF4444"/>
+  <polygon points="66,98 60,95 66,92" fill="#EF4444"/>
+  <circle cx="60" cy="95" r="2" fill="#B91C1C"/>
+</svg>
+

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Modal } from '../ui/modal';
-import { Bell, Calendar, Clock, Flag, BookOpen, AlertCircle } from 'lucide-react';
+import { Bell, Calendar, Flag } from 'lucide-react';
 
 export const CreateReminderModal = ({
   isOpen,

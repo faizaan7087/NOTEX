@@ -47,7 +47,7 @@ export const ArexPage = () => {
   };
 
   return (
-    <div className="fixed inset-0 w-screen h-screen z-0 bg-[#09090B] text-white overflow-hidden flex flex-col">
+    <div className="fixed inset-0 w-screen h-screen z-0 bg-[#09090B] text-white overflow-hidden flex flex-col font-sans">
       {/* If blocked by mixed content or no URL configured in production, show setup guide */}
       {isBlockedMixedContent || showConfig || !arexUrl ? (
         <div className="flex-1 overflow-y-auto flex items-center justify-center p-4 sm:p-6 z-10 pt-20">
@@ -56,11 +56,11 @@ export const ArexPage = () => {
             {/* Header */}
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-amber-400 shadow-xs">
+                <div className="w-10 h-10 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-white shadow-xs">
                   <Sparkles className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-white tracking-tight">
+                  <h2 className="text-lg font-bold text-white tracking-tight font-display">
                     Agent Arex Studio Setup
                   </h2>
                   <p className="text-xs text-zinc-400">

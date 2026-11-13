@@ -13,31 +13,14 @@ import {
   ArrowRight, 
   FolderOpen,
   DownloadCloud,
-  Folder,
   Sparkles,
   Clock,
-  HardDrive,
-  CheckCircle2,
-  FileCode2,
   GraduationCap,
-  FolderPlus,
   Bell,
   Circle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useReminders } from '../context/RemindersContext';
-
-// Dynamic gradients tailored for academic subjects
-const SUBJECT_GRADIENTS = [
-  'from-emerald-500 to-teal-700',
-  'from-indigo-500 to-violet-700',
-  'from-blue-500 to-cyan-600',
-  'from-rose-500 to-pink-600',
-  'from-amber-500 to-orange-600',
-  'from-purple-500 to-indigo-600',
-  'from-teal-500 to-emerald-700',
-  'from-fuchsia-500 to-purple-600',
-];
 
 // Lightweight isolated live clock with low-overhead update interval
 const LiveClock = () => {
@@ -119,7 +102,7 @@ export const DashboardPage = ({
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-xs font-semibold text-zinc-200 shadow-2xs">
               <GraduationCap className="w-3.5 h-3.5 text-zinc-300" />
-              <span>{user?.college || 'Academic Knowledge Vault'}</span>
+              <span>{user?.college && user.college !== 'Google Academic User' ? user.college : 'Academic Knowledge Vault'}</span>
             </div>
 
             <LiveClock />
@@ -233,12 +216,12 @@ export const DashboardPage = ({
         <motion.div
           whileHover={{ y: -3 }}
           onClick={() => onNavigate('notes')}
-          className="group p-4 sm:p-5 rounded-2xl bg-white/85 backdrop-blur-md border border-zinc-200/90 shadow-2xs hover:shadow-sm hover:border-amber-400/40 transition-all cursor-pointer"
+          className="group p-4 sm:p-5 rounded-2xl bg-white/85 backdrop-blur-md border border-zinc-200/90 shadow-2xs hover:shadow-sm hover:border-black/30 transition-all cursor-pointer"
         >
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold text-zinc-500">Starred Notes</span>
-            <div className="p-1.5 rounded-xl bg-amber-50 text-amber-500 border border-amber-200">
-              <Star className="w-3.5 h-3.5 fill-amber-400" />
+            <div className="p-1.5 rounded-xl bg-zinc-100 text-zinc-950 border border-zinc-200">
+              <Star className="w-3.5 h-3.5 fill-zinc-950 text-zinc-950" />
             </div>
           </div>
           <div className="text-2xl sm:text-3xl font-extrabold text-zinc-950 font-display tracking-tight">
@@ -286,8 +269,8 @@ export const DashboardPage = ({
         <div className="lg:col-span-2 p-5 rounded-3xl bg-white/90 backdrop-blur-md border border-zinc-200/90 shadow-2xs space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-xl bg-amber-50 text-amber-600 border border-amber-200">
-                <Bell className="w-4 h-4" />
+              <div className="p-1.5 rounded-xl bg-zinc-100 text-zinc-950 border border-zinc-200">
+                <Bell className="w-4 h-4 text-zinc-950" />
               </div>
               <div>
                 <h3 className="text-sm font-bold text-zinc-950 font-display">Upcoming Study Reminders</h3>
@@ -360,8 +343,6 @@ export const DashboardPage = ({
         {subjects.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
             {subjects.map((sub, idx) => {
-              const gradient = SUBJECT_GRADIENTS[idx % SUBJECT_GRADIENTS.length];
-
               return (
                 <motion.div
                   key={sub.name}
@@ -373,7 +354,7 @@ export const DashboardPage = ({
                   className="group relative flex items-center justify-between p-4 rounded-2xl bg-white/90 backdrop-blur-md border border-zinc-200/90 hover:border-black/25 shadow-2xs hover:shadow-md transition-all cursor-pointer overflow-hidden"
                 >
                   <div className="flex items-center gap-3 truncate pr-2">
-                    <div className={`w-10 h-10 rounded-2xl bg-gradient-to-br ${gradient} text-white flex items-center justify-center shrink-0 shadow-sm`}>
+                    <div className="w-10 h-10 rounded-2xl bg-zinc-950 text-white flex items-center justify-center shrink-0 shadow-sm border border-zinc-800 group-hover:bg-zinc-800 transition-colors">
                       <BookOpen className="w-4 h-4" />
                     </div>
                     <div className="truncate">

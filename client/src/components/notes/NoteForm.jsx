@@ -416,7 +416,7 @@ export const NoteForm = ({
       <form onSubmit={handleSubmit} className="space-y-6">
         
         {/* Top Control Bar */}
-        <div className="flex items-center justify-between gap-3 pb-4 border-b border-zinc-100">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 pb-4 border-b border-zinc-100">
           {/* Left: Folder Picker & Metadata Pill */}
           <div className="flex items-center flex-wrap gap-2">
             {/* Folder Dropdown */}
@@ -559,14 +559,14 @@ export const NoteForm = ({
                         setShowAttachMenu(false);
                         setLinkModalOpen(true);
                       }}
-                      className="w-full text-left px-3 py-2 text-xs text-zinc-800 hover:bg-emerald-50 hover:text-emerald-950 rounded-xl transition-colors flex items-center gap-2.5 font-medium cursor-pointer"
+                      className="w-full text-left px-3 py-2 text-xs text-zinc-800 hover:bg-zinc-100 hover:text-black rounded-xl transition-colors flex items-center gap-2.5 font-medium cursor-pointer"
                     >
-                      <div className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
+                      <div className="w-7 h-7 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-900 shrink-0">
                         <LinkIcon className="w-4 h-4" />
                       </div>
                       <div>
-                        <p className="font-bold text-emerald-900">Add Link Block</p>
-                        <p className="text-[10px] text-emerald-700 font-normal">Docs, articles, web links</p>
+                        <p className="font-bold text-zinc-900">Add Link Block</p>
+                        <p className="text-[10px] text-zinc-500 font-normal">Docs, articles, web links</p>
                       </div>
                     </button>
                   </div>
@@ -615,12 +615,12 @@ export const NoteForm = ({
               onClick={() => setIsFavorite(!isFavorite)}
               className={`p-2 rounded-xl transition-all ${
                 isFavorite
-                  ? 'bg-amber-50 text-amber-500 border border-amber-200 shadow-2xs'
+                  ? 'bg-zinc-100 text-zinc-950 border border-zinc-300 shadow-2xs'
                   : 'text-zinc-400 hover:text-black hover:bg-zinc-100'
               }`}
               title={isFavorite ? 'Starred Note' : 'Star Note'}
             >
-              <Star className={`w-4 h-4 ${isFavorite ? 'fill-amber-400 text-amber-500' : ''}`} />
+              <Star className={`w-4 h-4 ${isFavorite ? 'fill-zinc-950 text-zinc-950' : ''}`} />
             </button>
 
             {/* More Options Dropdown (XML Import) */}
@@ -738,7 +738,7 @@ export const NoteForm = ({
             </button>
           </div>
 
-          <span className="text-[11px] text-zinc-400 font-mono">
+          <span className="hidden sm:inline text-[11px] text-zinc-400 font-mono">
             {editorMode === 'write' ? 'Attachments insert right at your cursor' : 'Rendered Note View'}
           </span>
         </div>
@@ -813,7 +813,7 @@ export const NoteForm = ({
                           />
                         </div>
                       ) : isGpt ? (
-                        <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                        <div className="w-10 h-10 rounded-xl bg-zinc-900 text-white flex items-center justify-center shrink-0 shadow-xs">
                           <Bot className="w-5 h-5" />
                         </div>
                       ) : isLink ? (
@@ -823,7 +823,7 @@ export const NoteForm = ({
                       ) : (
                         <div className="w-10 h-10 rounded-xl bg-zinc-200 flex items-center justify-center shrink-0 text-zinc-700">
                           {isPdf ? (
-                            <FileText className="w-5 h-5 text-rose-500" />
+                            <FileText className="w-5 h-5 text-zinc-800" />
                           ) : (
                             <Paperclip className="w-4 h-4 text-zinc-600" />
                           )}
@@ -836,7 +836,7 @@ export const NoteForm = ({
                         </p>
                         <p className="text-[10px] text-zinc-500 font-mono truncate">
                           {isLink ? (
-                            <span className="text-emerald-700 font-medium">Link Block</span>
+                            <span className="text-zinc-600 font-medium">Link Block</span>
                           ) : (
                             formatFileSize(att.size)
                           )}

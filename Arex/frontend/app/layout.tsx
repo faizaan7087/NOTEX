@@ -1,4 +1,4 @@
-import { Kalam, Mandali, Public_Sans } from 'next/font/google';
+import { Kalam, Mandali, Plus_Jakarta_Sans, Outfit } from 'next/font/google';
 import localFont from 'next/font/local';
 import { headers } from 'next/headers';
 import { ThemeProvider } from '@/components/app/theme-provider';
@@ -7,8 +7,13 @@ import { cn } from '@/lib/shadcn/utils';
 import { getAppConfig, getStyles } from '@/lib/utils';
 import '@/styles/globals.css';
 
-const publicSans = Public_Sans({
-  variable: '--font-public-sans',
+const plusJakartaSans = Plus_Jakarta_Sans({
+  variable: '--font-sans',
+  subsets: ['latin'],
+});
+
+const outfit = Outfit({
+  variable: '--font-display',
   subsets: ['latin'],
 });
 
@@ -68,7 +73,8 @@ export default async function RootLayout({ children }: RootLayoutProps) {
       lang="en"
       suppressHydrationWarning
       className={cn(
-        publicSans.variable,
+        plusJakartaSans.variable,
+        outfit.variable,
         commitMono.variable,
         kalam.variable,
         mandali.variable,
@@ -76,6 +82,9 @@ export default async function RootLayout({ children }: RootLayoutProps) {
       )}
     >
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
         {styles && <style>{styles}</style>}
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />

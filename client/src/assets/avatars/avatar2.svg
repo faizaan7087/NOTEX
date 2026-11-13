@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#27272A"/>
+      <stop offset="100%" stop-color="#18181B"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="120" height="120" rx="28" fill="url(#bg2)"/>
+
+  <!-- Antenna -->
+  <line x1="60" y1="28" x2="60" y2="15" stroke="#71717A" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="60" cy="13" r="4.5" fill="#10B981"/>
+  <circle cx="60" cy="13" r="2" fill="#FFFFFF"/>
+
+  <!-- Robot Ears/Bolts -->
+  <rect x="23" y="47" width="6" height="16" rx="3" fill="#71717A"/>
+  <rect x="91" y="47" width="6" height="16" rx="3" fill="#71717A"/>
+
+  <!-- Robot Neck & Body -->
+  <rect x="52" y="79" width="16" height="10" fill="#52525B"/>
+  <path d="M36 88 C36 84 46 82 60 82 C74 82 84 84 84 88 L88 120 L32 120 Z" fill="#E4E4E7"/>
+  <!-- Chest Panel -->
+  <rect x="48" y="92" width="24" height="14" rx="4" fill="#18181B"/>
+  <circle cx="54" cy="99" r="2" fill="#10B981"/>
+  <circle cx="60" cy="99" r="2" fill="#38BDF8"/>
+  <circle cx="66" cy="99" r="2" fill="#F59E0B"/>
+
+  <!-- Robot Head Box -->
+  <rect x="27" y="27" width="66" height="54" rx="14" fill="#F4F4F5" stroke="#E4E4E7" stroke-width="2"/>
+
+  <!-- Screen Visor -->
+  <rect x="34" y="36" width="52" height="34" rx="8" fill="#18181B"/>
+
+  <!-- Glowing Digital Eyes -->
+  <rect x="42" y="45" width="11" height="9" rx="3" fill="url(#glow)"/>
+  <circle cx="45" cy="48" r="1.5" fill="#FFFFFF"/>
+  <rect x="67" y="45" width="11" height="9" rx="3" fill="url(#glow)"/>
+  <circle cx="70" cy="48" r="1.5" fill="#FFFFFF"/>
+
+  <!-- Digital Smile -->
+  <path d="M51 60 Q60 66 69 60" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Cheek Bolts -->
+  <circle cx="38" cy="62" r="1.5" fill="#71717A"/>
+  <circle cx="82" cy="62" r="1.5" fill="#71717A"/>
+</svg>
+

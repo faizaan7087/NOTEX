@@ -4,7 +4,6 @@ import { SearchBar } from '../components/notes/SearchBar';
 import { SubjectFilter } from '../components/notes/SubjectFilter';
 import { NoteList } from '../components/notes/NoteList';
 import { FolderExplorer } from '../components/folders/FolderExplorer';
-import { Button } from '../components/ui/button';
 import { AnimatedTabs } from '../components/ui/AnimatedTabs';
 import { useToast } from '../context/ToastContext';
 import { 

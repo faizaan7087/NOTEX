@@ -4,19 +4,14 @@ import { useReminders } from '../context/RemindersContext';
 import { CreateReminderModal } from '../components/reminders/CreateReminderModal';
 import { 
   Bell, 
-  Calendar, 
   Clock, 
   CheckCircle2, 
   Circle, 
   Plus, 
-  Flag, 
   Trash2, 
   ExternalLink, 
-  Volume2, 
   AlertTriangle, 
   BookOpen,
-  Sparkles,
-  ShieldCheck,
   Check
 } from 'lucide-react';
 
@@ -142,17 +137,17 @@ export const RemindersPage = ({
         <motion.div
           initial={{ opacity: 0, y: -5 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 shadow-2xs"
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-zinc-100 border border-zinc-200 text-zinc-900 shadow-2xs"
         >
           <div className="flex items-center gap-2.5">
-            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+            <AlertTriangle className="w-5 h-5 text-zinc-950 shrink-0" />
             <div className="text-xs">
               <span className="font-bold">Browser Notifications are currently disabled.</span> Enable notifications to receive sound chimes and OS banner alerts even when NOTEX is running in another tab.
             </div>
           </div>
           <button
             onClick={requestPermission}
-            className="px-3.5 py-1.5 rounded-xl bg-amber-900 hover:bg-black text-white text-xs font-semibold transition-all shadow-2xs cursor-pointer shrink-0 self-start sm:self-auto"
+            className="px-3.5 py-1.5 rounded-xl bg-black hover:bg-zinc-800 text-white text-xs font-semibold transition-all shadow-2xs cursor-pointer shrink-0 self-start sm:self-auto"
           >
             Enable Notifications
           </button>
@@ -166,23 +161,23 @@ export const RemindersPage = ({
           <p className="text-2xl font-black font-display text-zinc-950 mt-1">{activeReminders.length}</p>
         </div>
         <div className="p-4 rounded-2xl bg-white border border-zinc-200/80 shadow-2xs">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-600">Due Today</p>
-          <p className="text-2xl font-black font-display text-amber-700 mt-1">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Due Today</p>
+          <p className="text-2xl font-black font-display text-zinc-950 mt-1">
             {activeReminders.filter(r => isToday(r.dueDate)).length}
           </p>
         </div>
         <div className="p-4 rounded-2xl bg-white border border-zinc-200/80 shadow-2xs">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-rose-600">Overdue</p>
-          <p className="text-2xl font-black font-display text-rose-700 mt-1">{overdueReminders.length}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Overdue</p>
+          <p className="text-2xl font-black font-display text-zinc-950 mt-1">{overdueReminders.length}</p>
         </div>
         <div className="p-4 rounded-2xl bg-white border border-zinc-200/80 shadow-2xs">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-600">Completed</p>
-          <p className="text-2xl font-black font-display text-emerald-700 mt-1">{completedReminders.length}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Completed</p>
+          <p className="text-2xl font-black font-display text-zinc-950 mt-1">{completedReminders.length}</p>
         </div>
       </div>
 
       {/* 4. Tab Navigation */}
-      <div className="flex items-center gap-1.5 border-b border-zinc-200 pb-2">
+      <div className="flex items-center gap-1.5 border-b border-zinc-200 pb-2 overflow-x-auto scrollbar-none">
         {[
           { id: 'active', label: `Active (${activeReminders.length})` },
           { id: 'today', label: 'Due Today' },
@@ -261,13 +256,13 @@ export const RemindersPage = ({
                       onClick={() => toggleComplete(reminder)}
                       className={`mt-0.5 p-1 rounded-full transition-all cursor-pointer shrink-0 ${
                         reminder.isCompleted 
-                          ? 'text-emerald-600 bg-emerald-50' 
+                          ? 'text-zinc-950 bg-zinc-100' 
                           : 'text-zinc-300 hover:text-black hover:bg-zinc-100'
                       }`}
                       title={reminder.isCompleted ? "Mark incomplete" : "Mark as done"}
                     >
                       {reminder.isCompleted ? (
-                        <CheckCircle2 className="w-5 h-5 fill-emerald-600 text-white" />
+                        <CheckCircle2 className="w-5 h-5 fill-zinc-950 text-white" />
                       ) : (
                         <Circle className="w-5 h-5" />
                       )}
@@ -282,10 +277,10 @@ export const RemindersPage = ({
                         {/* Priority Badge */}
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wider ${
                           reminder.priority === 'high' 
-                            ? 'bg-rose-50 border-rose-200 text-rose-700' 
+                            ? 'bg-zinc-900 border-zinc-900 text-white' 
                             : reminder.priority === 'medium'
-                            ? 'bg-amber-50 border-amber-200 text-amber-700'
-                            : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                            ? 'bg-zinc-200 border-zinc-300 text-zinc-900'
+                            : 'bg-zinc-100 border-zinc-200 text-zinc-600'
                         }`}>
                           {reminder.priority}
                         </span>
@@ -311,7 +306,7 @@ export const RemindersPage = ({
                           <span>{formattedDate}</span>
                         </span>
 
-                        <span className={`text-[11px] px-2 py-0.5 rounded-md border ${due.color}`}>
+                        <span className="text-[11px] px-2 py-0.5 rounded-md border bg-zinc-100 text-zinc-700 border-zinc-200 font-mono">
                           {due.label}
                         </span>
 
@@ -319,10 +314,10 @@ export const RemindersPage = ({
                         {linkedNote && (
                           <button
                             onClick={() => onViewNote?.(linkedNote)}
-                            className="inline-flex items-center gap-1 text-[11px] text-indigo-700 hover:text-indigo-900 bg-indigo-50/80 px-2 py-0.5 rounded-md border border-indigo-200 cursor-pointer"
+                            className="inline-flex items-center gap-1 text-[11px] text-zinc-800 hover:text-black bg-zinc-100 px-2 py-0.5 rounded-md border border-zinc-200 cursor-pointer"
                             title={`Open note: ${linkedNote.title}`}
                           >
-                            <BookOpen className="w-3 h-3 text-indigo-600" />
+                            <BookOpen className="w-3 h-3 text-zinc-700" />
                             <span className="truncate max-w-[150px]">{linkedNote.title}</span>
                             <ExternalLink className="w-2.5 h-2.5" />
                           </button>

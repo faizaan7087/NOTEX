@@ -10,28 +10,25 @@ import {
   Settings as SettingsIcon,
   HardDrive, 
   User, 
-  Share2, 
-  Sliders, 
-  CheckCircle2, 
   RefreshCw, 
-  ExternalLink,
   ShieldCheck,
   Sparkles,
-  GraduationCap,
-  Building2,
-  MapPin,
-  FileText,
-  Clock,
-  LogOut,
-  FolderSync
+  LogOut
 } from 'lucide-react';
+import avatar1 from '../assets/avatars/avatar1.svg';
+import avatar2 from '../assets/avatars/avatar2.svg';
+import avatar3 from '../assets/avatars/avatar3.svg';
+import avatar4 from '../assets/avatars/avatar4.svg';
+import avatar5 from '../assets/avatars/avatar5.svg';
+import avatar6 from '../assets/avatars/avatar6.svg';
 
 const AVATAR_PRESETS = [
-  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=120&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80'
+  avatar1,
+  avatar2,
+  avatar3,
+  avatar4,
+  avatar5,
+  avatar6
 ];
 
 export const SettingsPage = ({ onNavigate }) => {
@@ -115,8 +112,6 @@ export const SettingsPage = ({ onNavigate }) => {
   const tabs = [
     { id: 'drive', label: 'Google Drive & Vault', icon: HardDrive },
     { id: 'profile', label: 'Profile & Identity', icon: User },
-    { id: 'sharing', label: 'Cloud Sharing', icon: Share2 },
-    { id: 'preferences', label: 'Workspace Preferences', icon: Sliders },
   ];
 
   return (
@@ -158,23 +153,23 @@ export const SettingsPage = ({ onNavigate }) => {
             {/* Status Card */}
             <div className="p-6 rounded-3xl bg-white/90 backdrop-blur-md border border-zinc-200/90 shadow-xs space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-zinc-100">
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border shadow-xs ${
-                    isDriveConnected ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'bg-zinc-100 border-zinc-200 text-zinc-400'
+                <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border shadow-xs shrink-0 ${
+                    isDriveConnected ? 'bg-zinc-100 border-zinc-300 text-zinc-950' : 'bg-zinc-100 border-zinc-200 text-zinc-400'
                   }`}>
                     <HardDrive className="w-6 h-6" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-base font-bold text-zinc-950 font-display">
                         Google Drive Integration
                       </h3>
                       <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
                         isDriveConnected
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          ? 'bg-zinc-100 text-zinc-900 border-zinc-300'
                           : 'bg-zinc-100 text-zinc-600 border-zinc-200'
                       }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${isDriveConnected ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-400'}`} />
+                        <span className={`w-1.5 h-1.5 rounded-full ${isDriveConnected ? 'bg-zinc-950 animate-pulse' : 'bg-zinc-400'}`} />
                         <span>{isDriveConnected ? 'Connected & Active' : 'Disconnected'}</span>
                       </span>
                     </div>
@@ -231,7 +226,7 @@ export const SettingsPage = ({ onNavigate }) => {
                     Privacy &amp; Security
                   </span>
                   <p className="text-sm font-bold text-zinc-900 flex items-center gap-1.5">
-                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    <ShieldCheck className="w-4 h-4 text-zinc-900" />
                     <span>drive.file Scope</span>
                   </p>
                   <p className="text-[11px] text-zinc-500">
@@ -338,7 +333,16 @@ export const SettingsPage = ({ onNavigate }) => {
                 />
               </div>
 
-              <div className="flex justify-end pt-3 border-t border-zinc-100">
+              <div className="flex items-center justify-between pt-3 border-t border-zinc-100">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={logout}
+                  className="text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200"
+                >
+                  <LogOut className="w-3.5 h-3.5 mr-1" />
+                  <span>Log Out</span>
+                </Button>
                 <Button
                   type="submit"
                   variant="default"
@@ -349,96 +353,6 @@ export const SettingsPage = ({ onNavigate }) => {
                 </Button>
               </div>
             </form>
-          </motion.div>
-        )}
-
-        {/* 3. Temporary Cloud Sharing Tab */}
-        {activeTab === 'sharing' && (
-          <motion.div
-            key="sharing-tab"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="p-6 sm:p-8 rounded-3xl bg-white/90 backdrop-blur-md border border-zinc-200/90 shadow-xs space-y-6"
-          >
-            <div>
-              <h3 className="text-base font-bold text-zinc-950 font-display">
-                Temporary Cloud Sharing Vault
-              </h3>
-              <p className="text-xs text-zinc-500">
-                Share folders with fellow students via temporary 1-hour cloud links
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-zinc-50 border border-zinc-200/80 space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-black text-white">
-                  <Clock className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-zinc-900">1-Hour Ephemeral Storage Window</h4>
-                  <p className="text-xs text-zinc-500">Links expire automatically after 60 minutes for security</p>
-                </div>
-              </div>
-              <p className="text-xs text-zinc-600 leading-relaxed">
-                When you share a course folder, NOTEX generates a temporary cloud repository copy. Another logged-in user can paste your 6-character code to clone that entire unit and all notes directly into their personal Google Drive vault.
-              </p>
-            </div>
-          </motion.div>
-        )}
-
-        {/* 4. Workspace Preferences */}
-        {activeTab === 'preferences' && (
-          <motion.div
-            key="preferences-tab"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="p-6 sm:p-8 rounded-3xl bg-white/90 backdrop-blur-md border border-zinc-200/90 shadow-xs space-y-6"
-          >
-            <div>
-              <h3 className="text-base font-bold text-zinc-950 font-display">
-                Workspace Preferences
-              </h3>
-              <p className="text-xs text-zinc-500">
-                Configure default note ordering, XML exports, and session controls
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-zinc-50 border border-zinc-200/80">
-                <div>
-                  <p className="text-xs font-bold text-zinc-900">XML Practical Demo Mode</p>
-                  <p className="text-[11px] text-zinc-500">W3C Compliant XML export engine for lab syllabus</p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onNavigate('xml-demo')}
-                  className="text-xs"
-                >
-                  Open XML Lab
-                </Button>
-              </div>
-
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-rose-50/60 border border-rose-200/80">
-                <div>
-                  <p className="text-xs font-bold text-rose-950">Log Out of Workspace</p>
-                  <p className="text-[11px] text-rose-600">End your current session on this device</p>
-                </div>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={logout}
-                  className="text-xs"
-                >
-                  <LogOut className="w-3.5 h-3.5 mr-1" />
-                  <span>Log Out</span>
-                </Button>
-              </div>
-            </div>
           </motion.div>
         )}
 

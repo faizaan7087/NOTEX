@@ -8,10 +8,8 @@ import {
   FolderPlus,
   ChevronRight, 
   ChevronDown, 
-  ChevronLeft,
   X, 
   Layers, 
-  Share2, 
   MoreVertical, 
   Edit3, 
   Trash2, 
@@ -20,7 +18,6 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Sparkles,
-  HardDrive,
   Bell
 } from 'lucide-react';
 import { cn } from '../../utils/cn';

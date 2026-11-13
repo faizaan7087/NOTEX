@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="bg6" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#27272A"/>
+      <stop offset="100%" stop-color="#18181B"/>
+    </linearGradient>
+    <linearGradient id="dino" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="120" height="120" rx="28" fill="url(#bg6)"/>
+
+  <!-- Dino Back Spikes -->
+  <polygon points="32,38 24,32 34,46" fill="#F59E0B"/>
+  <polygon points="30,52 20,48 30,60" fill="#F59E0B"/>
+  <polygon points="30,66 22,64 32,74" fill="#F59E0B"/>
+
+  <!-- Dino Body & Neck -->
+  <path d="M38 110 C38 88 44 82 60 82 C76 82 82 88 82 110 Z" fill="url(#dino)"/>
+  <!-- Belly -->
+  <ellipse cx="60" cy="98" rx="14" ry="12" fill="#A7F3D0"/>
+
+  <!-- Dino Head -->
+  <path d="M36 50 C36 34 50 28 66 28 C82 28 92 38 92 52 C92 64 80 68 64 68 C44 68 36 62 36 50 Z" fill="url(#dino)"/>
+
+  <!-- Big Cheerful Eyes -->
+  <circle cx="68" cy="42" r="9" fill="#FFFFFF"/>
+  <circle cx="70" cy="42" r="5" fill="#18181B"/>
+  <circle cx="68" cy="40" r="2" fill="#FFFFFF"/>
+
+  <!-- Cute Nostril -->
+  <ellipse cx="86" cy="50" rx="1.8" ry="2.2" fill="#065F46"/>
+
+  <!-- Happy Mouth & Cute Teeth -->
+  <path d="M72 58 Q82 62 88 56" fill="none" stroke="#18181B" stroke-width="2.2" stroke-linecap="round"/>
+  <polygon points="76,59 79,64 82,60" fill="#FFFFFF"/>
+
+  <!-- Cheerful Blush -->
+  <ellipse cx="64" cy="56" rx="4.5" ry="3" fill="#FDA4AF" opacity="0.75"/>
+
+  <!-- Cool Cap -->
+  <path d="M52 28 C52 22 62 20 74 24 L86 28 Z" fill="#6366F1"/>
+  <ellipse cx="88" cy="28" rx="8" ry="2.5" fill="#4F46E5"/>
+  <circle cx="66" cy="21" r="2" fill="#F59E0B"/>
+</svg>
+

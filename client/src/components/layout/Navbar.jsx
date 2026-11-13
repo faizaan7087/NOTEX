@@ -6,20 +6,17 @@ import {
   useMotionValueEvent 
 } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
-import { APP_NAME, APP_CONFIG } from '../../constants/app';
+import { APP_NAME } from '../../constants/app';
 import { 
   BookOpen, 
   LayoutDashboard,
-  FileCode2,
   Search, 
   Settings as SettingsIcon,
   LogOut, 
-  GraduationCap, 
   Menu,
   ChevronDown,
   User,
   PlusCircle,
-  FolderPlus,
   Sparkles,
   Bell
 } from 'lucide-react';
@@ -92,13 +89,13 @@ export const Navbar = ({
     {
       id: 'arex',
       name: 'Arex',
-      icon: <Sparkles className="w-4 h-4 text-amber-500 fill-amber-500/20" />,
+      icon: <Sparkles className="w-4 h-4" />,
       onClick: () => navigateTo('arex'),
     },
     {
       id: 'reminders',
       name: 'Reminders',
-      icon: <Bell className="w-4 h-4 text-amber-500" />,
+      icon: <Bell className="w-4 h-4" />,
       onClick: () => navigateTo('reminders'),
     },
   ];
@@ -147,9 +144,9 @@ export const Navbar = ({
             {/* Brand Logo Pill */}
             <button
               onClick={() => navigateTo('dashboard')}
-              className="flex items-center gap-2 group text-left focus:outline-none select-none pl-1"
+              className="flex items-center gap-2.5 group text-left focus:outline-none select-none pl-1"
             >
-              <div className="flex items-center justify-center w-7 h-7 group-hover:scale-105 transition-transform shrink-0">
+              <div className="flex items-center justify-center w-8 h-8 group-hover:scale-105 transition-transform shrink-0">
                 <img
                   src={isAIPage ? notexLogoDark : notexLogoTransparent}
                   alt="NOTEX Logo"
@@ -157,16 +154,10 @@ export const Navbar = ({
                 />
               </div>
               <span className={cn(
-                "font-display font-extrabold text-sm sm:text-base tracking-tight",
+                "font-display font-extrabold text-base sm:text-lg tracking-tight",
                 isAIPage ? "text-white" : "text-zinc-950"
               )}>
                 {APP_NAME}
-              </span>
-              <span className={cn(
-                "hidden md:inline-flex text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full border",
-                isAIPage ? "bg-zinc-900 text-zinc-300 border-zinc-700" : "bg-zinc-100 text-zinc-700 border-zinc-200"
-              )}>
-                Vault
               </span>
             </button>
           </div>
@@ -280,10 +271,6 @@ export const Navbar = ({
                     <div className={cn("px-3 py-2 border-b", isAIPage ? "border-zinc-800" : "border-zinc-200/60")}>
                       <p className={cn("text-xs font-semibold truncate", isAIPage ? "text-white" : "text-zinc-900")}>{user?.name || 'Student'}</p>
                       <p className="text-[11px] text-zinc-400 truncate">{user?.email}</p>
-                      <div className={cn("mt-1.5 flex items-center gap-1.5 text-[11px]", isAIPage ? "text-zinc-400" : "text-zinc-600")}>
-                        <GraduationCap className="w-3.5 h-3.5 shrink-0" />
-                        <span className="truncate">{user?.college || 'University'}</span>
-                      </div>
                     </div>
 
                     <div className="pt-1.5 space-y-1">
@@ -296,17 +283,6 @@ export const Navbar = ({
                       >
                         <SettingsIcon className="w-4 h-4 text-zinc-500" />
                         <span>Settings &amp; Drive</span>
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          navigateTo('xml-demo');
-                          setDropdownOpen(false);
-                        }}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-zinc-800 hover:text-black hover:bg-zinc-100 rounded-xl transition-colors text-left"
-                      >
-                        <FileCode2 className="w-4 h-4 text-zinc-500" />
-                        <span>XML Practical Engine</span>
                       </button>
 
                       <button

@@ -42,7 +42,7 @@ export const ToastProvider = ({ children }) => {
             className="pointer-events-auto flex items-center justify-between p-4 rounded-2xl shadow-xl border border-zinc-200 bg-white/95 backdrop-blur-xl text-zinc-900 transition-all duration-300 animate-in fade-in slide-in-from-bottom-5"
           >
             <div className="flex items-center gap-3">
-              {t.type === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />}
+              {t.type === 'success' && <CheckCircle2 className="w-5 h-5 text-zinc-950 shrink-0" />}
               {t.type === 'error' && <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />}
               {t.type === 'warning' && <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />}
               {t.type === 'info' && <Info className="w-5 h-5 text-zinc-700 shrink-0" />}

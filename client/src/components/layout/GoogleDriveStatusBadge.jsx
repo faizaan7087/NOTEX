@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { api } from '../../services/api';
-import { HardDrive, CheckCircle2, RefreshCw, ExternalLink } from 'lucide-react';
+import { HardDrive, RefreshCw } from 'lucide-react';
 
 export const GoogleDriveStatusBadge = () => {
   const { user } = useAuth();

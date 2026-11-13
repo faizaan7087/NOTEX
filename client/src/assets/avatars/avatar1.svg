@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="bg1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#18181B"/>
+      <stop offset="100%" stop-color="#27272A"/>
+    </linearGradient>
+    <linearGradient id="visor" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#0284C7"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="120" height="120" rx="28" fill="url(#bg1)"/>
+  
+  <!-- Tiny Stars -->
+  <circle cx="24" cy="24" r="1.5" fill="#E4E4E7" opacity="0.6"/>
+  <circle cx="96" cy="28" r="2" fill="#E4E4E7" opacity="0.8"/>
+  <circle cx="88" cy="85" r="1.5" fill="#E4E4E7" opacity="0.5"/>
+  <polygon points="26,82 28,84 26,86 24,84" fill="#38BDF8" opacity="0.7"/>
+
+  <!-- Suit Body -->
+  <path d="M35 110 C35 90 42 82 60 82 C78 82 85 90 85 110 Z" fill="#F4F4F5"/>
+  <path d="M54 82 L66 82 L64 110 L56 110 Z" fill="#E4E4E7"/>
+  <!-- Badge -->
+  <circle cx="60" cy="94" r="3.5" fill="#0284C7"/>
+
+  <!-- Cat Ears (behind helmet) -->
+  <path d="M38 42 L32 24 L48 34 Z" fill="#E4E4E7"/>
+  <path d="M37 38 L34 27 L45 33 Z" fill="#FDA4AF"/>
+  <path d="M82 42 L88 24 L72 34 Z" fill="#E4E4E7"/>
+  <path d="M83 38 L86 27 L75 33 Z" fill="#FDA4AF"/>
+
+  <!-- Helmet Outer -->
+  <circle cx="60" cy="54" r="32" fill="#FFFFFF" stroke="#E4E4E7" stroke-width="2"/>
+
+  <!-- Visor -->
+  <ellipse cx="60" cy="54" rx="24" ry="21" fill="url(#visor)"/>
+  <!-- Visor reflection -->
+  <path d="M44 42 C50 38 66 38 74 42 C71 45 60 45 44 42 Z" fill="#FFFFFF" opacity="0.45"/>
+
+  <!-- Cat Eyes in Visor -->
+  <ellipse cx="51" cy="54" rx="3.5" ry="5" fill="#0C4A6E"/>
+  <circle cx="50" cy="52" r="1.5" fill="#FFFFFF"/>
+  <ellipse cx="69" cy="54" rx="3.5" ry="5" fill="#0C4A6E"/>
+  <circle cx="68" cy="52" r="1.5" fill="#FFFFFF"/>
+
+  <!-- Cat Nose & Mouth -->
+  <polygon points="60,60 58,58 62,58" fill="#FDA4AF"/>
+  <path d="M56 62 Q60 65 64 62" fill="none" stroke="#0C4A6E" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Whiskers -->
+  <line x1="40" y1="58" x2="48" y2="59" stroke="#E0F2FE" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/>
+  <line x1="40" y1="62" x2="48" y2="61" stroke="#E0F2FE" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/>
+  <line x1="80" y1="58" x2="72" y2="59" stroke="#E0F2FE" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/>
+  <line x1="80" y1="62" x2="72" y2="61" stroke="#E0F2FE" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/>
+</svg>
+

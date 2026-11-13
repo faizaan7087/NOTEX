@@ -10,7 +10,6 @@ import {
   Clock, 
   Folder, 
   ShieldCheck, 
-  Sparkles,
   Layers,
   FileText,
   UserCheck

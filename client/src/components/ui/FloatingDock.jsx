@@ -3,7 +3,6 @@ import { motion, useMotionValue, useSpring, useTransform, AnimatePresence, useSc
 import { 
   PlusCircle, 
   FolderPlus, 
-  Search, 
   Star, 
   Settings, 
   BookOpen,

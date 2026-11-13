@@ -12,7 +12,6 @@ import {
   Paperclip, 
   FileText, 
   Image as ImageIcon,
-  ExternalLink,
   Link as LinkIcon
 } from 'lucide-react';
 
@@ -152,9 +151,9 @@ export const NoteCard = ({
                 className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-700 bg-zinc-100 px-2 py-0.5 rounded-full border border-zinc-200"
                 title={`${attachmentsCount} attachment(s)`}
               >
-                {hasLinks && <LinkIcon className="w-3 h-3 text-emerald-600" />}
+                {hasLinks && <LinkIcon className="w-3 h-3 text-zinc-600" />}
                 {hasImages && <ImageIcon className="w-3 h-3 text-zinc-600" />}
-                {hasPdfs && <FileText className="w-3 h-3 text-rose-600" />}
+                {hasPdfs && <FileText className="w-3 h-3 text-zinc-600" />}
                 {!hasLinks && !hasImages && !hasPdfs && <Paperclip className="w-3 h-3 text-zinc-500" />}
                 <span>{attachmentsCount}</span>
               </span>
@@ -167,12 +166,12 @@ export const NoteCard = ({
             onClick={handleStarClick}
             className={`p-1.5 rounded-xl transition-all ${
               note.isFavorite
-                ? 'text-amber-500 bg-amber-50 border border-amber-200 shadow-2xs'
+                ? 'text-zinc-950 bg-zinc-100 border border-zinc-300 shadow-2xs'
                 : 'text-zinc-400 hover:text-black hover:bg-zinc-100'
             }`}
             title={note.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
           >
-            <Star className={`w-4 h-4 ${note.isFavorite ? 'fill-amber-400 text-amber-500' : ''}`} />
+            <Star className={`w-4 h-4 ${note.isFavorite ? 'fill-zinc-950 text-zinc-950' : ''}`} />
           </motion.button>
         </div>
 
