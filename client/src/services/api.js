@@ -5,12 +5,13 @@
 
 // Normalize API Base URL so it works whether user provides with or without /api
 const getApiBaseUrl = () => {
-  let url = (import.meta.env.VITE_API_URL || '/api').trim();
-  // Remove trailing slash if present
-  if (url.endsWith('/')) {
-    url = url.slice(0, -1);
+  const envUrl = (import.meta.env.VITE_API_URL || '').trim();
+  // In development / local environment, use relative '/api' to route via Vite's proxy.
+  // This avoids cross-origin requests, port mismatch, and Safari's "TypeError: Load failed"
+  if (!envUrl || envUrl.includes('localhost') || envUrl.includes('127.0.0.1')) {
+    return '/api';
   }
-  return url;
+  return envUrl.endsWith('/') ? envUrl.slice(0, -1) : envUrl;
 };
 
 const API_BASE_URL = getApiBaseUrl();
@@ -27,6 +28,11 @@ const getAuthHeaders = () => {
 };
 
 const handleResponse = async (response) => {
+  // 204 No Content or 304 Not Modified
+  if (response.status === 204 || response.status === 304) {
+    return { success: true };
+  }
+
   const contentType = response.headers.get('content-type');
   
   // If response is raw XML
@@ -43,13 +49,13 @@ const handleResponse = async (response) => {
   try {
     data = await response.json();
   } catch (err) {
-    if (!response.ok) {
+    if (!response.ok && response.status !== 304) {
       throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
     }
     return { success: true };
   }
 
-  if (!response.ok) {
+  if (!response.ok && response.status !== 304) {
     const errorMessage = data?.message || data?.error || `Request failed with status ${response.status}`;
     const error = new Error(errorMessage);
     error.status = response.status;
@@ -269,5 +275,45 @@ export const api = {
     const query = new URLSearchParams({ download: 'true' });
     if (subject && subject !== 'all') query.append('subject', subject);
     return `${API_BASE_URL}/notes/export/xml?${query.toString()}`;
+  },
+
+  // --- Reminders Endpoints ---
+  async getReminders(params = {}) {
+    const query = new URLSearchParams();
+    if (params.completed !== undefined) query.append('completed', params.completed);
+    if (params.priority) query.append('priority', params.priority);
+    const qs = query.toString() ? `?${query.toString()}` : '';
+
+    const response = await fetch(`${API_BASE_URL}/reminders${qs}`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  async createReminder(reminderData) {
+    const response = await fetch(`${API_BASE_URL}/reminders`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(reminderData),
+    });
+    return handleResponse(response);
+  },
+
+  async updateReminder(id, reminderData) {
+    const response = await fetch(`${API_BASE_URL}/reminders/${id}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(reminderData),
+    });
+    return handleResponse(response);
+  },
+
+  async deleteReminder(id) {
+    const response = await fetch(`${API_BASE_URL}/reminders/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    return handleResponse(response);
   }
 };

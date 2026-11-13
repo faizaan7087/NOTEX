@@ -1,5 +1,3 @@
-import mammoth from 'mammoth';
-
 /**
  * Get correct MIME type based on filename extension and data URL prefix
  */
@@ -145,10 +143,12 @@ export const openAttachmentInNewTab = async (dataOrUrl, filename = 'document', m
         return;
       }
 
-      // For Word DOCX files: parse with mammoth and generate an interactive HTML document viewer
+      // For Word DOCX files: dynamically import mammoth on-demand to save bundle size
       let docHtml = '';
       if (isDocx) {
         try {
+          const mammothModule = await import('mammoth');
+          const mammoth = mammothModule.default || mammothModule;
           const buffer = await blob.arrayBuffer();
           const result = await mammoth.convertToHtml({ arrayBuffer: buffer });
           docHtml = result.value || '';

@@ -19,7 +19,9 @@ import {
   ChevronDown,
   User,
   PlusCircle,
-  FolderPlus
+  FolderPlus,
+  Sparkles,
+  Bell
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
@@ -28,9 +30,11 @@ export const Navbar = ({
   activePage,
   navigateTo,
   onOpenSearch,
+  onOpenAIDrawer,
   searchQuery,
   onSearchChange,
-  className
+  className,
+  isAIPage = false
 }) => {
   const { user, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -83,6 +87,18 @@ export const Navbar = ({
       icon: <BookOpen className="w-4 h-4" />,
       onClick: () => navigateTo('notes'),
     },
+    {
+      id: 'arex',
+      name: 'Arex',
+      icon: <Sparkles className="w-4 h-4 text-amber-500 fill-amber-500/20" />,
+      onClick: () => navigateTo('arex'),
+    },
+    {
+      id: 'reminders',
+      name: 'Reminders',
+      icon: <Bell className="w-4 h-4 text-amber-500" />,
+      onClick: () => navigateTo('reminders'),
+    },
   ];
 
   return (
@@ -105,14 +121,22 @@ export const Navbar = ({
           className
         )}
       >
-        <div className="relative flex items-center justify-between px-3 sm:px-4 py-2 rounded-full bg-white/85 backdrop-blur-xl border border-zinc-200/90 shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all">
+        <div className={cn(
+          "relative flex items-center justify-between px-3 sm:px-4 py-2 rounded-full transition-all duration-300",
+          isAIPage
+            ? "bg-zinc-950/85 backdrop-blur-2xl border border-zinc-800 shadow-[0_8px_30px_rgb(0,0,0,0.6)] text-white"
+            : "bg-white/85 backdrop-blur-xl border border-zinc-200/90 shadow-[0_8px_30px_rgb(0,0,0,0.08)]"
+        )}>
           
           {/* Left: Mobile Toggle & Brand Logo */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {/* Mobile Sidebar Hamburger */}
             <button
               onClick={onToggleSidebar}
-              className="lg:hidden p-1.5 rounded-full text-zinc-600 hover:text-black hover:bg-zinc-100 transition-colors focus:outline-none"
+              className={cn(
+                "lg:hidden p-1.5 rounded-full transition-colors focus:outline-none",
+                isAIPage ? "text-zinc-400 hover:text-white hover:bg-zinc-800" : "text-zinc-600 hover:text-black hover:bg-zinc-100"
+              )}
               aria-label="Toggle Navigation"
             >
               <Menu className="w-4 h-4" />
@@ -123,13 +147,23 @@ export const Navbar = ({
               onClick={() => navigateTo('dashboard')}
               className="flex items-center gap-2 group text-left focus:outline-none select-none pl-1"
             >
-              <div className="flex items-center justify-center w-7 h-7 rounded-full bg-black text-white shadow-xs group-hover:scale-105 transition-transform">
-                <BookOpen className="w-3.5 h-3.5" />
+              <div className="flex items-center justify-center w-7 h-7 group-hover:scale-105 transition-transform shrink-0">
+                <img
+                  src={isAIPage ? "/notex-logo-dark.png" : "/notex-logo-transparent.png"}
+                  alt="NOTEX Logo"
+                  className="w-full h-full object-contain"
+                />
               </div>
-              <span className="font-display font-extrabold text-sm sm:text-base tracking-tight text-zinc-950">
+              <span className={cn(
+                "font-display font-extrabold text-sm sm:text-base tracking-tight",
+                isAIPage ? "text-white" : "text-zinc-950"
+              )}>
                 {APP_NAME}
               </span>
-              <span className="hidden md:inline-flex text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full bg-zinc-100 text-zinc-700 border border-zinc-200">
+              <span className={cn(
+                "hidden md:inline-flex text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full border",
+                isAIPage ? "bg-zinc-900 text-zinc-300 border-zinc-700" : "bg-zinc-100 text-zinc-700 border-zinc-200"
+              )}>
                 Vault
               </span>
             </button>
@@ -146,14 +180,17 @@ export const Navbar = ({
                   className={cn(
                     "relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors z-10",
                     isActive
-                      ? "text-black"
-                      : "text-zinc-600 hover:text-black hover:bg-zinc-100/70"
+                      ? (isAIPage ? "text-white" : "text-black")
+                      : (isAIPage ? "text-zinc-400 hover:text-white hover:bg-zinc-850" : "text-zinc-600 hover:text-black hover:bg-zinc-100/70")
                   )}
                 >
                   {isActive && (
                     <motion.div
                       layoutId="floatingNavActivePill"
-                      className="absolute inset-0 rounded-full bg-zinc-100 border border-zinc-200/80 -z-10 shadow-2xs"
+                      className={cn(
+                        "absolute inset-0 rounded-full -z-10 shadow-2xs",
+                        isAIPage ? "bg-zinc-850 border border-zinc-700" : "bg-zinc-100 border border-zinc-200/80"
+                      )}
                       transition={{ type: "spring", stiffness: 380, damping: 28 }}
                     />
                   )}
@@ -167,15 +204,24 @@ export const Navbar = ({
           {/* Right: Quick Search Button & User Avatar Dropdown */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             
+
             {/* Quick Search Action */}
             <button
               onClick={() => onOpenSearch?.()}
-              className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-zinc-100/90 hover:bg-zinc-200/80 text-zinc-600 hover:text-black text-xs font-medium border border-zinc-200/80 transition-all shadow-2xs"
+              className={cn(
+                "flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-medium border transition-all shadow-2xs",
+                isAIPage
+                  ? "bg-zinc-900/90 hover:bg-zinc-800 text-zinc-300 hover:text-white border-zinc-800"
+                  : "bg-zinc-100/90 hover:bg-zinc-200/80 text-zinc-600 hover:text-black border-zinc-200/80"
+              )}
               title="Search notes (⌘K)"
             >
               <Search className="w-3.5 h-3.5" />
-              <span className="hidden md:inline-block text-[11px] text-zinc-500">Search...</span>
-              <kbd className="hidden md:inline-flex items-center gap-0.5 text-[9px] font-mono px-1.5 py-0.2 rounded bg-white border border-zinc-200 text-zinc-500 shadow-2xs">
+              <span className={cn("hidden md:inline-block text-[11px]", isAIPage ? "text-zinc-400" : "text-zinc-500")}>Search...</span>
+              <kbd className={cn(
+                "hidden md:inline-flex items-center gap-0.5 text-[9px] font-mono px-1.5 py-0.2 rounded border shadow-2xs",
+                isAIPage ? "bg-zinc-950 border-zinc-700 text-zinc-300" : "bg-white border-zinc-200 text-zinc-500"
+              )}>
                 ⌘K
               </kbd>
             </button>
@@ -185,9 +231,9 @@ export const Navbar = ({
               onClick={() => navigateTo('new-note')}
               className={cn(
                 "hidden md:flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-all shadow-xs",
-                activePage === 'new-note'
-                  ? "bg-zinc-800 text-white"
-                  : "bg-black hover:bg-zinc-800 text-white hover:shadow-md"
+                isAIPage
+                  ? (activePage === 'new-note' ? "bg-zinc-800 text-white" : "bg-white text-zinc-950 hover:bg-zinc-200")
+                  : (activePage === 'new-note' ? "bg-zinc-800 text-white" : "bg-black hover:bg-zinc-800 text-white hover:shadow-md")
               )}
               title="Create New Note"
             >
@@ -199,10 +245,16 @@ export const Navbar = ({
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-1.5 p-1 rounded-full hover:bg-zinc-100 border border-transparent hover:border-zinc-200 transition-all focus:outline-none"
+                className={cn(
+                  "flex items-center gap-1.5 p-1 rounded-full border border-transparent transition-all focus:outline-none",
+                  isAIPage ? "hover:bg-zinc-850 hover:border-zinc-800" : "hover:bg-zinc-100 hover:border-zinc-200"
+                )}
                 aria-expanded={dropdownOpen}
               >
-                <div className="w-7 h-7 rounded-full bg-zinc-900 text-white flex items-center justify-center font-bold text-xs shadow-2xs">
+                <div className={cn(
+                  "w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shadow-2xs",
+                  isAIPage ? "bg-white text-zinc-950" : "bg-zinc-900 text-white"
+                )}>
                   {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
                 </div>
                 <ChevronDown className="w-3 h-3 text-zinc-400 hidden sm:block" />
@@ -216,12 +268,17 @@ export const Navbar = ({
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 10 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-3 w-56 rounded-2xl bg-white/95 backdrop-blur-xl p-2 z-50 border border-zinc-200/90 shadow-2xl text-zinc-900"
+                    className={cn(
+                      "absolute right-0 mt-3 w-56 rounded-2xl p-2 z-50 border shadow-2xl backdrop-blur-xl",
+                      isAIPage
+                        ? "bg-zinc-900/95 border-zinc-800 text-white"
+                        : "bg-white/95 border-zinc-200/90 text-zinc-900"
+                    )}
                   >
-                    <div className="px-3 py-2 border-b border-zinc-200/60">
-                      <p className="text-xs font-semibold text-zinc-900 truncate">{user?.name || 'Student'}</p>
-                      <p className="text-[11px] text-zinc-500 truncate">{user?.email}</p>
-                      <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-zinc-600">
+                    <div className={cn("px-3 py-2 border-b", isAIPage ? "border-zinc-800" : "border-zinc-200/60")}>
+                      <p className={cn("text-xs font-semibold truncate", isAIPage ? "text-white" : "text-zinc-900")}>{user?.name || 'Student'}</p>
+                      <p className="text-[11px] text-zinc-400 truncate">{user?.email}</p>
+                      <div className={cn("mt-1.5 flex items-center gap-1.5 text-[11px]", isAIPage ? "text-zinc-400" : "text-zinc-600")}>
                         <GraduationCap className="w-3.5 h-3.5 shrink-0" />
                         <span className="truncate">{user?.college || 'University'}</span>
                       </div>

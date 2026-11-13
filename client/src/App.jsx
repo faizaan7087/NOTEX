@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Routes, Route, Navigate, useNavigate, useLocation, useSearchParams, useParams } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { useToast } from './context/ToastContext';
 import { api } from './services/api';
@@ -11,6 +12,8 @@ import { Footer } from './components/layout/Footer';
 import { BackgroundGrid } from './components/ui/BackgroundGrid';
 import { FloatingDock } from './components/ui/FloatingDock';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles } from 'lucide-react';
+import { cn } from './utils/cn';
 
 // Pages
 import { AuthPage } from './pages/AuthPage';
@@ -20,6 +23,8 @@ import { NoteFormPage } from './pages/NoteFormPage';
 import { XMLDemoPage } from './pages/XMLDemoPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { SettingsPage } from './pages/SettingsPage';
+import { RemindersPage } from './pages/RemindersPage';
+import { ArexPage } from './pages/ArexPage';
 
 // Modals
 import { Modal } from './components/ui/modal';
@@ -30,14 +35,63 @@ import { DeleteModal } from './components/notes/DeleteModal';
 import { CreateFolderModal } from './components/folders/CreateFolderModal';
 import { ShareFolderModal } from './components/folders/ShareFolderModal';
 import { ImportSharedModal } from './components/folders/ImportSharedModal';
-import { BookmarkChatModal } from './components/notes/BookmarkChatModal';
+
+// Wrapper to support /notes/edit/:id direct routing
+function NoteFormRouteWrapper({
+  editingNote,
+  notes,
+  folders,
+  onSave,
+  onCancel,
+  onRequestCreateFolder,
+  loading
+}) {
+  const { id } = useParams();
+  const noteData = editingNote || (id ? notes.find((n) => String(n._id || n.id) === String(id)) : null);
+
+  return (
+    <NoteFormPage
+      initialData={noteData}
+      folders={folders}
+      onSave={onSave}
+      onCancel={onCancel}
+      onRequestCreateFolder={onRequestCreateFolder}
+      loading={loading}
+    />
+  );
+}
 
 export function MainApp() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const toast = useToast();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  // Navigation State
-  const [activePage, setActivePage] = useState('dashboard');
+  // Compute activePage dynamically from URL
+  const getActivePage = (pathname) => {
+    if (pathname.startsWith('/notes/new')) return 'new-note';
+    if (pathname.startsWith('/notes/edit')) return 'edit-note';
+    if (pathname.startsWith('/notes')) return 'notes';
+    if (pathname.startsWith('/reminders')) return 'reminders';
+    if (pathname.startsWith('/arex') || pathname.startsWith('/ai-study')) return 'arex';
+    if (pathname.startsWith('/settings')) return 'settings';
+    if (pathname.startsWith('/xml-demo')) return 'xml-demo';
+    if (pathname.startsWith('/profile')) return 'profile';
+    return 'dashboard';
+  };
+
+  const activePage = getActivePage(location.pathname);
+  const isAIPage = location.pathname.startsWith('/arex') || location.pathname.startsWith('/ai-study') || activePage === 'arex';
+
+  // Document body matches active page theme
+  useEffect(() => {
+    document.body.style.backgroundColor = isAIPage ? '#09090B' : '#f8fafc';
+    return () => {
+      document.body.style.backgroundColor = '#f8fafc';
+    };
+  }, [isAIPage]);
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -63,7 +117,6 @@ export function MainApp() {
   const [xmlModalOpen, setXmlModalOpen] = useState(false);
   const [xmlTargetNote, setXmlTargetNote] = useState(null);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
-  const [bookmarkChatModalOpen, setBookmarkChatModalOpen] = useState(false);
 
   // Folder Modals
   const [folderModalOpen, setFolderModalOpen] = useState(false);
@@ -131,16 +184,23 @@ export function MainApp() {
     }
   }, [isAuthenticated]);
 
+  // 1. Initial workspace data load on login/session start
   useEffect(() => {
     if (isAuthenticated) {
-      fetchNotes();
       fetchFolders();
       fetchStatsAndSubjects();
-      if (user && user.isProfileCompleted === false) {
-        setActivePage('profile');
-      }
     }
-  }, [isAuthenticated, user?.isProfileCompleted, fetchNotes, fetchFolders, fetchStatsAndSubjects]);
+  }, [isAuthenticated, fetchFolders, fetchStatsAndSubjects]);
+
+  // 2. Fetch notes when search, subject, or filters change (with debounce on typing)
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const timer = setTimeout(() => {
+      fetchNotes();
+    }, searchQuery ? 250 : 0);
+
+    return () => clearTimeout(timer);
+  }, [isAuthenticated, fetchNotes, searchQuery]);
 
   // Check URL query parameters for ?share=... on load
   useEffect(() => {
@@ -153,6 +213,20 @@ export function MainApp() {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
+
+  // Sync URL search params (?folder=..., ?subject=...) when on /notes
+  useEffect(() => {
+    if (location.pathname === '/notes') {
+      const folderParam = searchParams.get('folder');
+      const subjectParam = searchParams.get('subject');
+      if (folderParam !== null && folderParam !== currentFolderId) {
+        setCurrentFolderId(folderParam || null);
+      }
+      if (subjectParam && subjectParam !== selectedSubject) {
+        setSelectedSubject(subjectParam);
+      }
+    }
+  }, [location.pathname, searchParams]);
 
   // Keyboard shortcut listener for Command/Ctrl+K
   useEffect(() => {
@@ -170,13 +244,13 @@ export function MainApp() {
   const handleSaveNote = async (noteData) => {
     setActionLoading(true);
     try {
-      if (editingNote && editingNote._id) {
-        const noteId = editingNote._id || editingNote.id;
-        const res = await api.updateNote(noteId, noteData);
+      const targetNoteId = (editingNote && (editingNote._id || editingNote.id)) || noteData._id || noteData.id;
+      if (targetNoteId) {
+        const res = await api.updateNote(targetNoteId, noteData);
         if (res.success) {
           toast.success('Note updated successfully!');
           setEditingNote(null);
-          setActivePage('notes');
+          navigate('/notes');
           fetchNotes();
           fetchFolders();
           fetchStatsAndSubjects();
@@ -185,7 +259,8 @@ export function MainApp() {
         const res = await api.createNote(noteData);
         if (res.success) {
           toast.success('Note created and saved to folder!');
-          setActivePage('notes');
+          setEditingNote(null);
+          navigate('/notes');
           fetchNotes();
           fetchFolders();
           fetchStatsAndSubjects();
@@ -316,8 +391,10 @@ export function MainApp() {
     fetchStatsAndSubjects();
     if (newFolderId) {
       setCurrentFolderId(newFolderId);
+      navigate(`/notes?folder=${newFolderId}`);
+    } else {
+      navigate('/notes');
     }
-    setActivePage('notes');
   };
 
   const handleCreateNoteInFolder = (folderId, subjectName = '') => {
@@ -325,7 +402,7 @@ export function MainApp() {
       folderId: folderId || '',
       subject: subjectName || ''
     });
-    setActivePage('new-note');
+    navigate('/notes/new');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -338,19 +415,44 @@ export function MainApp() {
 
   // Navigation Helper
   const navigateTo = (page, subject = null) => {
-    setActivePage(page);
-    if (subject) {
-      setSelectedSubject(subject);
-    }
-    if (page === 'new-note') {
+    if (page === 'dashboard') {
+      navigate('/dashboard');
+    } else if (page === 'notes') {
+      if (subject) {
+        setSelectedSubject(subject);
+        navigate(`/notes?subject=${encodeURIComponent(subject)}`);
+      } else {
+        navigate('/notes');
+      }
+    } else if (page === 'new-note') {
       setEditingNote(null);
+      navigate('/notes/new');
+    } else if (page === 'edit-note') {
+      navigate('/notes/edit');
+    } else if (page === 'reminders') {
+      navigate('/reminders');
+    } else if (page === 'arex' || page === 'ai-study') {
+      navigate('/arex');
+    } else if (page === 'settings') {
+      navigate('/settings');
+    } else if (page === 'xml-demo') {
+      navigate('/xml-demo');
+    } else if (page === 'profile') {
+      navigate('/profile');
+    } else {
+      navigate(`/${page}`);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleEditNote = (note) => {
     setEditingNote(note);
-    setActivePage('edit-note');
+    const noteId = note?._id || note?.id;
+    if (noteId) {
+      navigate(`/notes/edit/${noteId}`);
+    } else {
+      navigate('/notes/edit');
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -377,9 +479,9 @@ export function MainApp() {
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col bg-[#fafafa] text-zinc-950">
+    <div className={cn("relative min-h-screen flex flex-col transition-colors duration-300", isAIPage ? "bg-[#09090B] text-white" : "bg-[#fafafa] text-zinc-950")}>
       {/* Ambient Grid & Lighting Background */}
-      <BackgroundGrid />
+      <BackgroundGrid isAIPage={isAIPage} />
 
       {/* Top Floating Navbar (Aceternity UI) */}
       <Navbar
@@ -389,147 +491,231 @@ export function MainApp() {
         onOpenSearch={() => setSearchModalOpen(true)}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        onOpenAIDrawer={() => navigateTo('arex')}
+        isAIPage={isAIPage}
       />
 
       <div className="flex-1 flex">
-        {/* Left Sidebar with Expandable Nested Folders */}
-        <Sidebar
-          isOpen={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-          activePage={activePage}
-          navigateTo={navigateTo}
-          folders={folders}
-          currentFolderId={currentFolderId}
-          onNavigateFolder={(fId) => setCurrentFolderId(fId)}
-          onRequestCreateFolder={(parentId) => handleOpenCreateFolderModal(parentId)}
-          onEditFolder={(folder) => handleOpenCreateFolderModal(folder.parentId, folder)}
-          onDeleteFolder={handleDeleteFolder}
-          onShareFolder={handleOpenShareFolder}
-          subjects={subjects}
-          selectedSubject={selectedSubject}
-          onSelectSubject={(sub) => {
-            setSelectedSubject(sub);
-            if (activePage !== 'notes') setActivePage('notes');
-          }}
-          stats={stats}
-          isCollapsed={sidebarCollapsed}
-          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-        />
+        {/* Left Sidebar with Expandable Nested Folders (hidden during full-screen Arex mode) */}
+        {!isAIPage && (
+          <Sidebar
+            isOpen={sidebarOpen}
+            onClose={() => setSidebarOpen(false)}
+            activePage={activePage}
+            navigateTo={navigateTo}
+            folders={folders}
+            currentFolderId={currentFolderId}
+            onNavigateFolder={(fId) => {
+              setCurrentFolderId(fId);
+              navigate(fId ? `/notes?folder=${fId}` : '/notes');
+            }}
+            onRequestCreateFolder={(parentId) => handleOpenCreateFolderModal(parentId)}
+            onEditFolder={(folder) => handleOpenCreateFolderModal(folder.parentId, folder)}
+            onDeleteFolder={handleDeleteFolder}
+            onShareFolder={handleOpenShareFolder}
+            subjects={subjects}
+            selectedSubject={selectedSubject}
+            onSelectSubject={(sub) => {
+              setSelectedSubject(sub);
+              navigate(sub && sub !== 'all' ? `/notes?subject=${encodeURIComponent(sub)}` : '/notes');
+            }}
+            stats={stats}
+            isCollapsed={sidebarCollapsed}
+            onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+            isAIPage={isAIPage}
+          />
+        )}
 
         {/* Main Content Area */}
-        <main className={`flex-1 transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'lg:pl-[96px]' : 'lg:pl-[288px]'} flex flex-col justify-between relative z-10`}>
-          <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 pb-12">
+        <main className={cn(
+          "flex-1 transition-all duration-300 ease-in-out flex flex-col justify-between relative z-10",
+          isAIPage ? "pl-0" : (sidebarCollapsed ? 'lg:pl-[96px]' : 'lg:pl-[288px]')
+        )}>
+          <div className={cn(
+            "w-full mx-auto",
+            isAIPage 
+              ? "w-full p-0 m-0 max-w-none" 
+              : "max-w-7xl px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 pb-12"
+          )}>
             <AnimatePresence mode="wait">
               <motion.div
-                key={activePage}
+                key={location.pathname}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.22, ease: 'easeOut' }}
               >
-                {activePage === 'dashboard' && (
-                  <DashboardPage
-                    stats={stats}
-                    notes={notes}
-                    subjects={subjects}
-                    folders={folders}
-                    loading={loading}
-                    onViewNote={(n) => setViewingNote(n)}
-                    onEditNote={handleEditNote}
-                    onDeleteNote={(n) => setDeletingNote(n)}
-                    onExportXML={handleOpenXMLModal}
-                    onToggleFavorite={handleToggleFavorite}
-                    onNavigate={navigateTo}
-                    onNavigateFolder={(fId) => {
-                      setCurrentFolderId(fId);
-                      setActivePage('notes');
-                    }}
-                    onShareFolder={handleOpenShareFolder}
-                    onOpenImportShared={() => handleOpenImportShared()}
-                    onOpenBookmarkChat={() => setBookmarkChatModalOpen(true)}
+                <Routes location={location}>
+                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <DashboardPage
+                        stats={stats}
+                        notes={notes}
+                        subjects={subjects}
+                        folders={folders}
+                        loading={loading}
+                        onViewNote={(n) => setViewingNote(n)}
+                        onEditNote={handleEditNote}
+                        onDeleteNote={(n) => setDeletingNote(n)}
+                        onExportXML={handleOpenXMLModal}
+                        onToggleFavorite={handleToggleFavorite}
+                        onNavigate={navigateTo}
+                        onNavigateFolder={(fId) => {
+                          setCurrentFolderId(fId);
+                          navigate(fId ? `/notes?folder=${fId}` : '/notes');
+                        }}
+                        onShareFolder={handleOpenShareFolder}
+                        onOpenImportShared={() => handleOpenImportShared()}
+                      />
+                    }
                   />
-                )}
 
-                {activePage === 'notes' && (
-                  <NotesPage
-                    notes={notes}
-                    subjects={subjects}
-                    folders={folders}
-                    currentFolderId={currentFolderId}
-                    onNavigateFolder={(fId) => setCurrentFolderId(fId)}
-                    onCreateSubfolder={(parentId) => handleOpenCreateFolderModal(parentId)}
-                    onEditFolder={(folder) => handleOpenCreateFolderModal(folder.parentId, folder)}
-                    onDeleteFolder={handleDeleteFolder}
-                    onShareFolder={handleOpenShareFolder}
-                    onOpenImportShared={() => handleOpenImportShared()}
-                    onOpenBookmarkChat={() => setBookmarkChatModalOpen(true)}
-                    onCreateNoteInFolder={handleCreateNoteInFolder}
-                    loading={loading}
-                    searchQuery={searchQuery}
-                    onSearchChange={setSearchQuery}
-                    selectedSubject={selectedSubject}
-                    onSelectSubject={setSelectedSubject}
-                    sortBy={sortBy}
-                    onSortChange={setSortBy}
-                    showFavoritesOnly={showFavoritesOnly}
-                    onToggleFavoritesOnly={() => setShowFavoritesOnly(!showFavoritesOnly)}
-                    onViewNote={(n) => setViewingNote(n)}
-                    onEditNote={handleEditNote}
-                    onDeleteNote={(n) => setDeletingNote(n)}
-                    onExportXML={handleOpenXMLModal}
-                    onToggleFavorite={handleToggleFavorite}
-                    onNavigate={navigateTo}
-                    onClearFilters={handleClearFilters}
+                  <Route
+                    path="/notes"
+                    element={
+                      <NotesPage
+                        notes={notes}
+                        subjects={subjects}
+                        folders={folders}
+                        currentFolderId={currentFolderId}
+                        onNavigateFolder={(fId) => {
+                          setCurrentFolderId(fId);
+                          navigate(fId ? `/notes?folder=${fId}` : '/notes');
+                        }}
+                        onCreateSubfolder={(parentId) => handleOpenCreateFolderModal(parentId)}
+                        onEditFolder={(folder) => handleOpenCreateFolderModal(folder.parentId, folder)}
+                        onDeleteFolder={handleDeleteFolder}
+                        onShareFolder={handleOpenShareFolder}
+                        onOpenImportShared={() => handleOpenImportShared()}
+                        onCreateNoteInFolder={handleCreateNoteInFolder}
+                        loading={loading}
+                        searchQuery={searchQuery}
+                        onSearchChange={setSearchQuery}
+                        selectedSubject={selectedSubject}
+                        onSelectSubject={(sub) => {
+                          setSelectedSubject(sub);
+                          navigate(sub && sub !== 'all' ? `/notes?subject=${encodeURIComponent(sub)}` : '/notes');
+                        }}
+                        sortBy={sortBy}
+                        onSortChange={setSortBy}
+                        showFavoritesOnly={showFavoritesOnly}
+                        onToggleFavoritesOnly={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                        onViewNote={(n) => setViewingNote(n)}
+                        onEditNote={handleEditNote}
+                        onDeleteNote={(n) => setDeletingNote(n)}
+                        onExportXML={handleOpenXMLModal}
+                        onToggleFavorite={handleToggleFavorite}
+                        onNavigate={navigateTo}
+                        onClearFilters={handleClearFilters}
+                      />
+                    }
                   />
-                )}
 
-                {(activePage === 'new-note' || activePage === 'edit-note') && (
-                  <NoteFormPage
-                    initialData={editingNote}
-                    folders={folders}
-                    onSave={handleSaveNote}
-                    onCancel={() => navigateTo('notes')}
-                    onRequestCreateFolder={(parentId) => handleOpenCreateFolderModal(parentId)}
-                    loading={actionLoading}
+                  <Route
+                    path="/notes/new"
+                    element={
+                      <NoteFormPage
+                        initialData={editingNote}
+                        folders={folders}
+                        onSave={handleSaveNote}
+                        onCancel={() => navigateTo('notes')}
+                        onRequestCreateFolder={(parentId) => handleOpenCreateFolderModal(parentId)}
+                        loading={actionLoading}
+                      />
+                    }
                   />
-                )}
 
-                {activePage === 'settings' && (
-                  <SettingsPage
-                    onNavigate={navigateTo}
+                  <Route
+                    path="/notes/edit/:id"
+                    element={
+                      <NoteFormRouteWrapper
+                        editingNote={editingNote}
+                        notes={notes}
+                        folders={folders}
+                        onSave={handleSaveNote}
+                        onCancel={() => navigateTo('notes')}
+                        onRequestCreateFolder={(parentId) => handleOpenCreateFolderModal(parentId)}
+                        loading={actionLoading}
+                      />
+                    }
                   />
-                )}
 
-                {activePage === 'xml-demo' && (
-                  <XMLDemoPage
-                    subjects={subjects}
-                    onNavigate={navigateTo}
+                  <Route
+                    path="/notes/edit"
+                    element={
+                      <NoteFormPage
+                        initialData={editingNote}
+                        folders={folders}
+                        onSave={handleSaveNote}
+                        onCancel={() => navigateTo('notes')}
+                        onRequestCreateFolder={(parentId) => handleOpenCreateFolderModal(parentId)}
+                        loading={actionLoading}
+                      />
+                    }
                   />
-                )}
 
-                {activePage === 'profile' && (
-                  <ProfilePage
-                    onCompleteOnboarding={() => setActivePage('dashboard')}
-                    isFirstTime={user && user.isProfileCompleted === false}
+                  <Route
+                    path="/reminders"
+                    element={
+                      <RemindersPage
+                        notes={notes}
+                        subjects={subjects}
+                        onViewNote={(n) => setViewingNote(n)}
+                        onNavigate={navigateTo}
+                      />
+                    }
                   />
-                )}
+
+                  <Route
+                    path="/arex"
+                    element={<ArexPage />}
+                  />
+                  <Route path="/ai-study" element={<Navigate to="/arex" replace />} />
+
+                  <Route
+                    path="/settings"
+                    element={<SettingsPage onNavigate={navigateTo} />}
+                  />
+
+                  <Route
+                    path="/xml-demo"
+                    element={<XMLDemoPage subjects={subjects} onNavigate={navigateTo} />}
+                  />
+
+                  <Route
+                    path="/profile"
+                    element={
+                      <ProfilePage
+                        onCompleteOnboarding={() => navigateTo('dashboard')}
+                        isFirstTime={user && user.isProfileCompleted === false}
+                      />
+                    }
+                  />
+
+                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                </Routes>
               </motion.div>
             </AnimatePresence>
           </div>
 
-          <Footer />
+          {!isAIPage && <Footer navigateTo={navigateTo} isAIPage={isAIPage} />}
         </main>
       </div>
 
-      {/* Raycast/macOS Style Floating Command Dock */}
-      <FloatingDock
-        activePage={activePage}
-        navigateTo={navigateTo}
-        onOpenCreateFolder={() => handleOpenCreateFolderModal(null)}
-        onOpenSearch={() => setSearchModalOpen(true)}
-        onToggleFavorites={() => setShowFavoritesOnly(!showFavoritesOnly)}
-        showFavoritesOnly={showFavoritesOnly}
-      />
+      {/* Raycast/macOS Style Floating Command Dock (Hidden on Arex Whiteboard) */}
+      {!isAIPage && (
+        <FloatingDock
+          activePage={activePage}
+          navigateTo={navigateTo}
+          onOpenCreateFolder={() => handleOpenCreateFolderModal(null)}
+          onOpenSearch={() => setSearchModalOpen(true)}
+          onToggleFavorites={() => setShowFavoritesOnly(!showFavoritesOnly)}
+          showFavoritesOnly={showFavoritesOnly}
+          isAIPage={isAIPage}
+        />
+      )}
 
       {/* Note Reader Modal (NoteViewer) */}
       <Modal
@@ -548,6 +734,11 @@ export function MainApp() {
           onExportXML={(n) => {
             setViewingNote(null);
             handleOpenXMLModal(n);
+          }}
+          onOpenAI={(n) => {
+            setViewingNote(null);
+            const noteId = n?._id || n?.id;
+            navigate(noteId ? `/arex?noteId=${noteId}` : '/arex');
           }}
           onClose={() => setViewingNote(null)}
         />
@@ -615,17 +806,6 @@ export function MainApp() {
         note={deletingNote}
         onConfirm={handleConfirmDelete}
         loading={actionLoading}
-      />
-
-      {/* Bookmark ChatGPT Link Modal */}
-      <BookmarkChatModal
-        isOpen={bookmarkChatModalOpen}
-        onClose={() => setBookmarkChatModalOpen(false)}
-        onSave={handleSaveNote}
-        folders={folders}
-        subjects={subjects}
-        currentFolderId={currentFolderId}
-        initialSubject={selectedSubject !== 'all' ? selectedSubject : ''}
       />
     </div>
   );

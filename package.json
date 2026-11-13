@@ -1,0 +1,25 @@
+{
+  "name": "notex-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NOTEX - Student Notes Management System + Agent Arex Live Multimodal AI Teacher",
+  "scripts": {
+    "start": "bash start.sh",
+    "dev": "bash start.sh",
+    "server": "cd server && npm start",
+    "client": "cd client && npm run dev",
+    "arex": "bash start_arex.sh",
+    "build": "cd client && npm run build"
+  },
+  "keywords": [
+    "notex",
+    "notes",
+    "arex",
+    "gemini",
+    "livekit",
+    "whiteboard"
+  ],
+  "author": "NOTEX Team",
+  "license": "MIT"
+}
+

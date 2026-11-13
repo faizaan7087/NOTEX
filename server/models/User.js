@@ -234,6 +234,18 @@ const UserProxy = {
     return new FileUserDoc(newUser);
   },
 
+  async find(query = {}) {
+    if (dbConfig.isD1) {
+      const rows = await cloudflareD1.query('SELECT * FROM users');
+      return (rows || []).map(r => new FileUserDoc({ ...r, _id: r.id, isProfileCompleted: Boolean(r.isProfileCompleted) }));
+    }
+    if (dbConfig.isMongo) {
+      return await MongoUser.find(query);
+    }
+    const users = loadFileUsers();
+    return users.map(u => new FileUserDoc(u));
+  },
+
   async findOne(query) {
     if (dbConfig.isD1) {
       let rows = [];

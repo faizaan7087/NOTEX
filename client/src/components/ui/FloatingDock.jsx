@@ -7,10 +7,12 @@ import {
   Star, 
   Settings, 
   BookOpen,
-  LayoutDashboard
+  LayoutDashboard,
+  Sparkles,
+  Bell
 } from 'lucide-react';
 
-const DockIcon = ({ mouseX, icon: Icon, label, onClick, isActive }) => {
+const DockIcon = ({ mouseX, icon: Icon, label, onClick, isActive, isAIPage = false }) => {
   const ref = useRef(null);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -31,8 +33,10 @@ const DockIcon = ({ mouseX, icon: Icon, label, onClick, isActive }) => {
       onClick={onClick}
       className={`relative flex items-center justify-center rounded-2xl transition-colors ${
         isActive
-          ? 'bg-black text-white shadow-md'
-          : 'bg-white/90 text-zinc-700 hover:text-black hover:bg-white border border-zinc-200/90 shadow-2xs'
+          ? (isAIPage ? 'bg-white text-zinc-950 shadow-md' : 'bg-black text-white shadow-md')
+          : (isAIPage
+              ? 'bg-zinc-900/90 text-zinc-400 hover:text-white hover:bg-zinc-800 border border-zinc-800 shadow-2xs'
+              : 'bg-white/90 text-zinc-700 hover:text-black hover:bg-white border border-zinc-200/90 shadow-2xs')
       }`}
     >
       <Icon className="w-5 h-5 shrink-0" />
@@ -45,7 +49,9 @@ const DockIcon = ({ mouseX, icon: Icon, label, onClick, isActive }) => {
             animate={{ opacity: 1, y: -38, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.9 }}
             transition={{ duration: 0.15 }}
-            className="absolute -top-2 px-2.5 py-1 rounded-xl bg-black text-white text-[11px] font-semibold tracking-wide whitespace-nowrap shadow-xl pointer-events-none z-50"
+            className={`absolute -top-2 px-2.5 py-1 rounded-xl text-[11px] font-semibold tracking-wide whitespace-nowrap shadow-xl pointer-events-none z-50 ${
+              isAIPage ? 'bg-zinc-800 text-white border border-zinc-700' : 'bg-black text-white'
+            }`}
           >
             {label}
           </motion.div>
@@ -61,7 +67,8 @@ export const FloatingDock = ({
   onOpenCreateFolder,
   onOpenSearch,
   onToggleFavorites,
-  showFavoritesOnly
+  showFavoritesOnly,
+  isAIPage = false
 }) => {
   const mouseX = useMotionValue(Infinity);
   const { scrollY } = useScroll();
@@ -91,6 +98,20 @@ export const FloatingDock = ({
       icon: BookOpen,
       onClick: () => navigateTo('notes'),
       isActive: activePage === 'notes' && !showFavoritesOnly
+    },
+    {
+      id: 'arex',
+      label: 'Arex',
+      icon: Sparkles,
+      onClick: () => navigateTo('arex'),
+      isActive: activePage === 'arex'
+    },
+    {
+      id: 'reminders',
+      label: 'Reminders',
+      icon: Bell,
+      onClick: () => navigateTo('reminders'),
+      isActive: activePage === 'reminders'
     },
     {
       id: 'new-note',
@@ -125,7 +146,7 @@ export const FloatingDock = ({
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 hidden md:block">
       <motion.div
-        onMouseMove={(e) => mouseX.set(e.pageX)}
+        onMouseMove={(e) => mouseX.set(e.clientX)}
         onMouseLeave={() => mouseX.set(Infinity)}
         initial={{ y: 50, opacity: 0 }}
         animate={{ 
@@ -134,7 +155,11 @@ export const FloatingDock = ({
           scale: hidden ? 0.95 : 1
         }}
         transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-        className="flex items-end gap-3 px-4 py-2.5 rounded-3xl bg-white/80 backdrop-blur-2xl border border-zinc-200/90 shadow-2xl"
+        className={`flex items-end gap-3 px-4 py-2.5 rounded-3xl backdrop-blur-2xl transition-all duration-300 ${
+          isAIPage
+            ? 'bg-zinc-950/85 border border-zinc-800 shadow-[0_8px_30px_rgb(0,0,0,0.6)]'
+            : 'bg-white/80 border border-zinc-200/90 shadow-2xl'
+        }`}
       >
         {items.map((item) => (
           <DockIcon
@@ -144,6 +169,7 @@ export const FloatingDock = ({
             label={item.label}
             onClick={item.onClick}
             isActive={item.isActive}
+            isAIPage={isAIPage}
           />
         ))}
       </motion.div>

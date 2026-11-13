@@ -258,6 +258,24 @@ const googleLoginUser = async (req, res) => {
       avatar = userInfo.picture || userInfo.avatar;
     }
 
+    // Server-side fallback: fetch userinfo directly from Google if client-side fetch was blocked or omitted
+    if (!email && accessToken) {
+      try {
+        const gRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        if (gRes.ok) {
+          const gData = await gRes.json();
+          email = gData.email;
+          name = gData.name;
+          googleId = gData.sub;
+          avatar = gData.picture;
+        }
+      } catch (gErr) {
+        console.warn('[Server Google UserInfo Fetch]:', gErr.message);
+      }
+    }
+
     if (!email) {
       return res.status(400).json({
         success: false,

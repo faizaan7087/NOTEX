@@ -20,9 +20,12 @@ import {
   CheckCircle2,
   FileCode2,
   GraduationCap,
-  FolderPlus
+  FolderPlus,
+  Bell,
+  Circle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useReminders } from '../context/RemindersContext';
 
 // Dynamic gradients tailored for academic subjects
 const SUBJECT_GRADIENTS = [
@@ -35,6 +38,29 @@ const SUBJECT_GRADIENTS = [
   'from-teal-500 to-emerald-700',
   'from-fuchsia-500 to-purple-600',
 ];
+
+// Lightweight isolated live clock with low-overhead update interval
+const LiveClock = () => {
+  const [time, setTime] = useState(() =>
+    new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+  );
+
+  useEffect(() => {
+    const updateTime = () => {
+      const formatted = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      setTime((prev) => (prev !== formatted ? formatted : prev));
+    };
+    const timer = setInterval(updateTime, 15000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="flex items-center gap-2 text-xs font-mono text-zinc-400 bg-white/5 px-2.5 py-1 rounded-full border border-white/5">
+      <Clock className="w-3.5 h-3.5 text-zinc-400" />
+      <span>{time}</span>
+    </div>
+  );
+};
 
 export const DashboardPage = ({
   stats,
@@ -50,24 +76,12 @@ export const DashboardPage = ({
   onNavigate,
   onNavigateFolder,
   onShareFolder,
-  onOpenImportShared,
-  onOpenBookmarkChat
+  onOpenImportShared
 }) => {
   const { user } = useAuth();
+  const { activeReminders = [], toggleComplete } = useReminders();
   const firstName = user?.name ? user.name.split(' ')[0] : 'Student';
   const recentNotes = notes.slice(0, 6);
-
-  // Live time state
-  const [currentTime, setCurrentTime] = useState(
-    new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-  );
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   const isDriveConnected = user?.driveConnected || !!user?.driveRootFolderId || !!user?.googleId;
 
@@ -87,8 +101,8 @@ export const DashboardPage = ({
           width={540}
           height={1200}
           smallWidth={240}
-          duration={7}
-          xOffset={70}
+          duration={8}
+          xOffset={50}
         />
 
         {/* Ambient Subtle Grid Mesh overlay */}
@@ -108,10 +122,7 @@ export const DashboardPage = ({
               <span>{user?.college || 'Academic Knowledge Vault'}</span>
             </div>
 
-            <div className="flex items-center gap-2 text-xs font-mono text-zinc-400 bg-white/5 px-2.5 py-1 rounded-full border border-white/5">
-              <Clock className="w-3.5 h-3.5 text-zinc-400" />
-              <span>{currentTime}</span>
-            </div>
+            <LiveClock />
           </div>
 
           {/* Hero Welcome Title & Subtitle */}
@@ -237,7 +248,98 @@ export const DashboardPage = ({
 
       </div>
 
-      {/* 3. Subjects & Courses with Vibrant Gradient Badges */}
+      {/* 3. Arex Live Whiteboard Teacher & Upcoming Deadlines Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Agent Arex Quick Card */}
+        <motion.div
+          whileHover={{ y: -3 }}
+          onClick={() => onNavigate('arex')}
+          className="lg:col-span-1 p-5 rounded-3xl bg-zinc-900/90 text-white border border-zinc-800/90 shadow-2xs hover:shadow-md hover:border-zinc-700/80 backdrop-blur-md transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between group"
+        >
+          <div className="space-y-3 relative z-10">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-1.5 rounded-xl bg-zinc-800 text-white border border-zinc-700">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white font-display">
+                    Agent Arex
+                  </h3>
+                  <p className="text-[11px] text-zinc-400">AI Whiteboard Teacher</p>
+                </div>
+              </div>
+            </div>
+
+            <p className="text-xs text-zinc-300 leading-relaxed font-sans">
+              Ask questions about code, algorithms, or concepts. Arex draws real-time diagrams and explains them on a live whiteboard.
+            </p>
+          </div>
+
+          <div className="pt-3.5 flex items-center justify-between text-xs font-semibold text-white border-t border-zinc-800 mt-4 relative z-10 group-hover:text-zinc-200 transition-colors">
+            <span>Launch Arex Studio</span>
+            <ArrowRight className="w-4 h-4 text-white group-hover:translate-x-1 transition-transform" />
+          </div>
+        </motion.div>
+
+        {/* Upcoming Reminders Card */}
+        <div className="lg:col-span-2 p-5 rounded-3xl bg-white/90 backdrop-blur-md border border-zinc-200/90 shadow-2xs space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-xl bg-amber-50 text-amber-600 border border-amber-200">
+                <Bell className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-zinc-950 font-display">Upcoming Study Reminders</h3>
+                <p className="text-[11px] text-zinc-400">Browser alerts &amp; audio chimes for deadlines</p>
+              </div>
+            </div>
+            <button
+              onClick={() => onNavigate('reminders')}
+              className="text-xs font-semibold text-zinc-600 hover:text-black flex items-center gap-1 cursor-pointer"
+            >
+              <span>View All ({activeReminders.length})</span>
+              <ArrowRight className="w-3 h-3" />
+            </button>
+          </div>
+
+          {activeReminders.length === 0 ? (
+            <div className="py-6 text-center text-xs text-zinc-400 italic">
+              No upcoming study deadlines. You're all caught up!
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {activeReminders.slice(0, 3).map((r) => (
+                <div
+                  key={r._id || r.id}
+                  className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-50 border border-zinc-200/60 hover:bg-zinc-100 transition-colors"
+                >
+                  <div className="flex items-center gap-2.5 truncate pr-2">
+                    <button
+                      onClick={() => toggleComplete(r)}
+                      className="text-zinc-300 hover:text-emerald-600 shrink-0 cursor-pointer"
+                      title="Complete task"
+                    >
+                      <Circle className="w-4 h-4" />
+                    </button>
+                    <span className="text-xs font-bold text-zinc-900 truncate">{r.title}</span>
+                    {r.subject && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-white text-zinc-600 border border-zinc-200 shrink-0">
+                        {r.subject}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] font-mono font-medium text-zinc-500 shrink-0">
+                    {new Date(r.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 4. Subjects & Courses with Vibrant Gradient Badges */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 font-display flex items-center gap-1.5">

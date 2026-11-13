@@ -20,9 +20,11 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Sparkles,
-  HardDrive
+  HardDrive,
+  Bell
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
+import { useReminders } from '../../context/RemindersContext';
 
 export const Sidebar = ({
   isOpen,
@@ -41,7 +43,8 @@ export const Sidebar = ({
   onSelectSubject,
   stats,
   isCollapsed = false,
-  onToggleCollapse
+  onToggleCollapse,
+  isAIPage = false
 }) => {
   const [expandedFolders, setExpandedFolders] = useState({});
   const [activeMenuFolderId, setActiveMenuFolderId] = useState(null);
@@ -65,6 +68,8 @@ export const Sidebar = ({
     }));
   };
 
+  const { activeReminders = [] } = useReminders();
+
   const navItems = [
     {
       id: 'dashboard',
@@ -77,6 +82,19 @@ export const Sidebar = ({
       label: 'All Notes',
       icon: BookOpen,
       badge: stats?.totalNotes || null,
+    },
+    {
+      id: 'arex',
+      label: 'Arex',
+      icon: Sparkles,
+      badge: 'Live',
+      highlight: true
+    },
+    {
+      id: 'reminders',
+      label: 'Reminders',
+      icon: Bell,
+      badge: activeReminders.length > 0 ? activeReminders.length : null,
     },
     {
       id: 'new-note',
@@ -108,7 +126,10 @@ export const Sidebar = ({
       {/* Floating Glassmorphic Sidebar Card */}
       <aside
         className={cn(
-          "fixed z-40 rounded-3xl bg-white/85 backdrop-blur-xl border border-zinc-200/90 shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 ease-in-out flex flex-col justify-between overflow-hidden",
+          "fixed z-40 rounded-3xl transition-all duration-300 ease-in-out flex flex-col justify-between overflow-hidden",
+          isAIPage
+            ? "bg-zinc-950/85 backdrop-blur-2xl border border-zinc-800 shadow-[0_8px_30px_rgb(0,0,0,0.6)] text-white"
+            : "bg-white/85 backdrop-blur-xl border border-zinc-200/90 shadow-[0_8px_30px_rgb(0,0,0,0.08)] text-zinc-900",
           // Mobile vs Desktop positioning
           "max-lg:top-4 max-lg:bottom-4 max-lg:left-4 max-lg:w-[280px] max-lg:p-4",
           "lg:top-20 lg:bottom-6 lg:left-4 xl:left-5 lg:p-3.5",
@@ -120,12 +141,13 @@ export const Sidebar = ({
           
           {/* Top Header: Collapse Toggle on Desktop & Close on Mobile */}
           <div className={cn(
-            "flex items-center pb-2.5 border-b border-zinc-200/70",
+            "flex items-center pb-2.5 border-b",
+            isAIPage ? "border-zinc-800" : "border-zinc-200/70",
             isCollapsed ? "justify-center" : "justify-between px-1"
           )}>
             {!isCollapsed && (
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-zinc-950 animate-pulse" />
+                <div className={cn("w-2 h-2 rounded-full animate-pulse", isAIPage ? "bg-emerald-400" : "bg-zinc-950")} />
                 <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 font-display">
                   Workspace
                 </span>
@@ -136,7 +158,10 @@ export const Sidebar = ({
             {onToggleCollapse && (
               <button
                 onClick={onToggleCollapse}
-                className="hidden lg:flex p-1.5 rounded-xl text-zinc-400 hover:text-black hover:bg-zinc-100 transition-colors"
+                className={cn(
+                  "hidden lg:flex p-1.5 rounded-xl transition-colors",
+                  isAIPage ? "text-zinc-400 hover:text-white hover:bg-zinc-800" : "text-zinc-400 hover:text-black hover:bg-zinc-100"
+                )}
                 title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
               >
                 {isCollapsed ? (
@@ -150,7 +175,10 @@ export const Sidebar = ({
             {/* Mobile Close Button */}
             <button
               onClick={onClose}
-              className="lg:hidden p-1.5 rounded-xl text-zinc-400 hover:text-black hover:bg-zinc-100 transition-colors"
+              className={cn(
+                "lg:hidden p-1.5 rounded-xl transition-colors",
+                isAIPage ? "text-zinc-400 hover:text-white hover:bg-zinc-800" : "text-zinc-400 hover:text-black hover:bg-zinc-100"
+              )}
             >
               <X className="w-4 h-4" />
             </button>
@@ -174,8 +202,8 @@ export const Sidebar = ({
                       ? "justify-center p-2.5" 
                       : "justify-between px-3 py-2 text-xs font-semibold",
                     isActive
-                      ? "bg-black text-white shadow-xs"
-                      : "text-zinc-600 hover:text-black hover:bg-zinc-100/80"
+                      ? (isAIPage ? "bg-white text-zinc-950 shadow-md font-bold" : "bg-black text-white shadow-xs")
+                      : (isAIPage ? "text-zinc-400 hover:text-white hover:bg-zinc-850" : "text-zinc-600 hover:text-black hover:bg-zinc-100/80")
                   )}
                   title={isCollapsed ? item.label : undefined}
                 >
@@ -190,8 +218,8 @@ export const Sidebar = ({
                       className={cn(
                         "text-[10px] font-bold px-2 py-0.5 rounded-full",
                         isActive
-                          ? "bg-white/20 text-white"
-                          : "bg-zinc-100 text-zinc-700 border border-zinc-200"
+                          ? (isAIPage ? "bg-zinc-200 text-zinc-900" : "bg-white/20 text-white")
+                          : (isAIPage ? "bg-zinc-800 text-zinc-300 border border-zinc-700" : "bg-zinc-100 text-zinc-700 border border-zinc-200")
                       )}
                     >
                       {item.badge}
@@ -375,6 +403,49 @@ export const Sidebar = ({
                   </div>
                 )}
               </div>
+
+              {/* Course Subjects Quick Access */}
+              {subjects && subjects.length > 0 && (
+                <div className="pt-3 space-y-1.5 border-t border-zinc-200/60">
+                  <div className="px-1 flex items-center justify-between">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 font-display">
+                      Course Subjects
+                    </span>
+                  </div>
+                  <div className="space-y-0.5">
+                    {subjects.slice(0, 5).map((sub) => {
+                      const subName = sub.name || sub;
+                      const subCount = sub.count;
+                      const isSelected = selectedSubject === subName;
+                      return (
+                        <div
+                          key={subName}
+                          onClick={() => {
+                            onSelectSubject(subName);
+                            if (window.innerWidth < 1024) onClose();
+                          }}
+                          className={cn(
+                            "flex items-center justify-between px-2.5 py-1 rounded-xl text-xs cursor-pointer transition-all",
+                            isSelected
+                              ? "bg-black text-white font-bold shadow-2xs"
+                              : "text-zinc-600 hover:bg-zinc-100/80 hover:text-black"
+                          )}
+                        >
+                          <div className="flex items-center gap-2 truncate">
+                            <Layers className={cn("w-3 h-3 shrink-0", isSelected ? "text-white" : "text-zinc-400")} />
+                            <span className="truncate">{subName}</span>
+                          </div>
+                          {subCount > 0 && (
+                            <span className={cn("text-[10px] font-mono", isSelected ? "text-white/80" : "text-zinc-400")}>
+                              {subCount}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             /* Collapsed Folder Shortcut Icon */
@@ -395,7 +466,7 @@ export const Sidebar = ({
         </div>
 
         {/* Sidebar Footer with Settings & System Status */}
-        <div className="pt-2.5 border-t border-zinc-200/70 space-y-2">
+        <div className={cn("pt-2.5 border-t space-y-2", isAIPage ? "border-zinc-800" : "border-zinc-200/70")}>
           <button
             onClick={() => {
               navigateTo('settings');
@@ -407,21 +478,14 @@ export const Sidebar = ({
                 ? "justify-center p-2.5" 
                 : "gap-2.5 px-3 py-2 text-xs font-semibold",
               activePage === 'settings'
-                ? "bg-black text-white shadow-xs"
-                : "text-zinc-600 hover:text-black hover:bg-zinc-100/80"
+                ? (isAIPage ? "bg-white text-zinc-950 shadow-md font-bold" : "bg-black text-white shadow-xs")
+                : (isAIPage ? "text-zinc-400 hover:text-white hover:bg-zinc-850" : "text-zinc-600 hover:text-black hover:bg-zinc-100/80")
             )}
-            title={isCollapsed ? 'Settings & Vault' : undefined}
+            title={isCollapsed ? 'Settings' : undefined}
           >
             <SettingsIcon className="w-4 h-4 text-zinc-500 shrink-0" />
-            {!isCollapsed && <span>Settings &amp; Vault</span>}
+            {!isCollapsed && <span>Settings</span>}
           </button>
-
-          {!isCollapsed && (
-            <div className="px-1 flex items-center justify-between text-[10px] text-zinc-400 font-mono">
-              <span>NOTEX Vault</span>
-              <span>Google Drive</span>
-            </div>
-          )}
         </div>
 
         {/* Specular Bottom Accent Border */}

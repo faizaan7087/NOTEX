@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { NoteCard } from '../notes/NoteCard';
+import { NoteCard, cleanMarkdownExcerpt } from '../notes/NoteCard';
 import { Button } from '../ui/button';
 import { useToast } from '../../context/ToastContext';
 import { 
@@ -103,8 +103,8 @@ export const FolderExplorer = ({
         }
       }
       if (n.content) {
-        const preview = n.content.substring(0, 90).replace(/[\n\r]+/g, ' ');
-        message += `📝 ${preview}${n.content.length > 90 ? '...' : ''}\n`;
+        const preview = cleanMarkdownExcerpt(n.content, n.attachments, 90);
+        message += `📝 ${preview}\n`;
       }
       message += `\n`;
     });

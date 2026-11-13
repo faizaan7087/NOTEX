@@ -4,8 +4,15 @@ import { api } from '../services/api';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
   const [token, setToken] = useState(() => localStorage.getItem('notex_token'));
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('notex_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -14,20 +21,28 @@ export const AuthProvider = ({ children }) => {
       if (storedToken) {
         try {
           const res = await api.getMe();
-          if (res.success && res.user) {
+          if (res && res.success && res.user) {
             setUser(res.user);
-          } else {
-            // Token invalid or expired
+            localStorage.setItem('notex_user', JSON.stringify(res.user));
+          } else if (res && res.status === 401) {
             localStorage.removeItem('notex_token');
+            localStorage.removeItem('notex_user');
             setToken(null);
             setUser(null);
           }
         } catch (err) {
-          console.warn('[Auth init] Session expired or server unavailable:', err.message);
-          localStorage.removeItem('notex_token');
-          setToken(null);
-          setUser(null);
+          console.warn('[Auth init] Session validation notice:', err.message);
+          // ONLY clear session if server explicitly responded with 401 Unauthorized
+          if (err.status === 401) {
+            localStorage.removeItem('notex_token');
+            localStorage.removeItem('notex_user');
+            setToken(null);
+            setUser(null);
+          }
         }
+      } else {
+        setUser(null);
+        localStorage.removeItem('notex_user');
       }
       setLoading(false);
     };
@@ -39,6 +54,9 @@ export const AuthProvider = ({ children }) => {
     const res = await api.login({ email, password });
     if (res.success && res.token) {
       localStorage.setItem('notex_token', res.token);
+      if (res.user) {
+        localStorage.setItem('notex_user', JSON.stringify(res.user));
+      }
       setToken(res.token);
       setUser(res.user);
     }
@@ -49,6 +67,9 @@ export const AuthProvider = ({ children }) => {
     const res = await api.googleAuth(googlePayload);
     if (res.success && res.token) {
       localStorage.setItem('notex_token', res.token);
+      if (res.user) {
+        localStorage.setItem('notex_user', JSON.stringify(res.user));
+      }
       setToken(res.token);
       setUser(res.user);
     }
@@ -59,6 +80,9 @@ export const AuthProvider = ({ children }) => {
     const res = await api.register(userData);
     if (res.success && res.token) {
       localStorage.setItem('notex_token', res.token);
+      if (res.user) {
+        localStorage.setItem('notex_user', JSON.stringify(res.user));
+      }
       setToken(res.token);
       setUser(res.user);
     }
@@ -67,6 +91,8 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('notex_token');
+    localStorage.removeItem('notex_user');
+    localStorage.removeItem('notex_ai_study_chat_history');
     setToken(null);
     setUser(null);
   };

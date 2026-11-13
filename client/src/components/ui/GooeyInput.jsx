@@ -46,21 +46,6 @@ export const GooeyInput = ({
 
   return (
     <div className={`relative flex items-center w-full ${className}`}>
-      {/* SVG Gooey Filter Definition */}
-      <svg className="absolute w-0 h-0 pointer-events-none" aria-hidden="true">
-        <defs>
-          <filter id="gooey-search-filter">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur" />
-            <feColorMatrix
-              in="blur"
-              type="matrix"
-              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9"
-              result="goo"
-            />
-            <feComposite in="SourceGraphic" in2="goo" operator="atop" />
-          </filter>
-        </defs>
-      </svg>
 
       <form
         onSubmit={handleSubmit}

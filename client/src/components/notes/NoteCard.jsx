@@ -12,10 +12,72 @@ import {
   Paperclip, 
   FileText, 
   Image as ImageIcon,
-  Bot,
   ExternalLink,
   Link as LinkIcon
 } from 'lucide-react';
+
+export const cleanMarkdownExcerpt = (content, attachments = [], maxLength = 150) => {
+  if (!content || typeof content !== 'string' || !content.trim()) {
+    if (attachments && attachments.length > 0) {
+      const names = attachments.map(a => a.name).filter(Boolean);
+      return names.length > 0 
+        ? `📄 Attached: ${names.slice(0, 2).join(', ')}${names.length > 2 ? ` (+${names.length - 2} more)` : ''}`
+        : `📎 Attached: ${attachments.length} study material${attachments.length === 1 ? '' : 's'}`;
+    }
+    return 'No text description provided.';
+  }
+
+  let text = content;
+
+  // 1. Clean attachment links: "> 📄 **[name](attachment:id)**" or "![name](attachment:id)" -> "📄 name"
+  text = text.replace(/(?:>\s*)?(?:📄\s*)?\*{0,2}\[([^\]]+)\]\(attachment:[^)]+\)\*{0,2}/gi, '📄 $1');
+  text = text.replace(/!\[([^\]]*)\]\(attachment:[^)]+\)/gi, '$1');
+
+  // 2. Clean standard markdown links: [label](url) -> label
+  text = text.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+
+  // 3. Remove image markdown: ![alt](url) -> alt
+  text = text.replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1');
+
+  // 4. Strip blockquote symbols '>' at line starts
+  text = text.replace(/^\s*>\s*/gm, '');
+
+  // 5. Strip headings '#', '##', etc.
+  text = text.replace(/^\s*#{1,6}\s+/gm, '');
+
+  // 6. Strip bold and italics: **text**, __text__, *text*, _text_
+  text = text.replace(/(\*\*|__)(.*?)\1/g, '$2');
+  text = text.replace(/(\*|_)(.*?)\1/g, '$2');
+
+  // 7. Strip code fences & inline code
+  text = text.replace(/```[\s\S]*?```/g, (match) => {
+    return match.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '').trim();
+  });
+  text = text.replace(/`([^`]+)`/g, '$1');
+
+  // 8. Strip list markers: '- ', '* ', '+ ', '1. '
+  text = text.replace(/^\s*[-*+]\s+/gm, '');
+  text = text.replace(/^\s*\d+\.\s+/gm, '');
+
+  // 9. Normalize multiple whitespaces and consecutive newlines to clean spaces
+  text = text.replace(/\r\n/g, ' ').replace(/\n+/g, ' ').replace(/\s{2,}/g, ' ').trim();
+
+  if (!text) {
+    if (attachments && attachments.length > 0) {
+      const names = attachments.map(a => a.name).filter(Boolean);
+      return names.length > 0 
+        ? `📄 Attached: ${names.slice(0, 2).join(', ')}${names.length > 2 ? ` (+${names.length - 2} more)` : ''}`
+        : `📎 Attached: ${attachments.length} study material${attachments.length === 1 ? '' : 's'}`;
+    }
+    return 'No text description provided.';
+  }
+
+  if (text.length > maxLength) {
+    return text.substring(0, maxLength).trim() + '...';
+  }
+
+  return text;
+};
 
 export const NoteCard = ({
   note,
@@ -43,13 +105,7 @@ export const NoteCard = ({
     (a) => !a.type?.startsWith('link') && (a.type === 'application/pdf' || a.name?.toLowerCase().endsWith('.pdf'))
   );
 
-  const excerpt = note.content && note.content.trim()
-    ? note.content.length > 150
-      ? note.content.substring(0, 150) + '...'
-      : note.content
-    : attachmentsCount > 0
-      ? `Attached: ${attachmentsCount} study material${attachmentsCount === 1 ? '' : 's'} (${hasLinks ? 'Links' : ''}${hasLinks && (hasImages || hasPdfs) ? ', ' : ''}${hasImages ? 'Images' : ''}${hasImages && hasPdfs ? ' & ' : ''}${hasPdfs ? 'PDFs' : ''})`
-      : 'No text description provided.';
+  const excerpt = cleanMarkdownExcerpt(note.content, note.attachments, 150);
 
   const handleStarClick = (e) => {
     e.stopPropagation();
@@ -91,13 +147,6 @@ export const NoteCard = ({
               {note.subject}
             </Badge>
 
-            {note.chatGptUrl && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                <Bot className="w-3 h-3 text-emerald-600" />
-                <span>ChatGPT</span>
-              </span>
-            )}
-
             {attachmentsCount > 0 && (
               <span 
                 className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-700 bg-zinc-100 px-2 py-0.5 rounded-full border border-zinc-200"
@@ -132,26 +181,8 @@ export const NoteCard = ({
           {note.title}
         </h4>
 
-        {/* Direct ChatGPT Link Button */}
-        {note.chatGptUrl && (
-          <a
-            href={note.chatGptUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="flex items-center justify-between w-full px-3 py-1.5 rounded-xl bg-emerald-50/90 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 text-xs font-semibold transition-all group/btn shadow-2xs mb-2.5"
-            title="Open ChatGPT shared answer thread in new tab"
-          >
-            <span className="flex items-center gap-1.5 truncate">
-              <Bot className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-              <span className="truncate">Open ChatGPT Thread</span>
-            </span>
-            <ExternalLink className="w-3.5 h-3.5 text-emerald-600 group-hover/btn:translate-x-0.5 transition-transform shrink-0" />
-          </a>
-        )}
-
         {/* Content Excerpt */}
-        <p className="text-xs text-zinc-600 leading-relaxed line-clamp-3 mb-4 font-sans whitespace-pre-line">
+        <p className="text-xs text-zinc-600 leading-relaxed line-clamp-3 mb-4 font-sans">
           {excerpt}
         </p>
       </div>

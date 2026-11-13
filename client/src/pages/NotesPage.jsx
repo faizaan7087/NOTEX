@@ -24,7 +24,6 @@ export const NotesPage = ({
   onCreateNoteInFolder,
   onShareFolder,
   onOpenImportShared,
-  onOpenBookmarkChat,
   loading = false,
   searchQuery,
   onSearchChange,
@@ -44,33 +43,9 @@ export const NotesPage = ({
 }) => {
   const toast = useToast();
   const [viewMode, setViewMode] = useState('folders'); // 'folders' | 'grid'
-  const [showGptOnly, setShowGptOnly] = useState(false);
 
   const isSearching = !!searchQuery.trim();
-
-  // Filter notes by ChatGPT links if toggle is active
-  const displayedNotes = showGptOnly
-    ? notes.filter(n => !!n.chatGptUrl)
-    : notes;
-
-  const gptLinksCount = notes.filter(n => !!n.chatGptUrl).length;
-
-  const handleShareWhatsAppLinks = () => {
-    const gptNotes = notes.filter(n => !!n.chatGptUrl);
-    if (gptNotes.length === 0) {
-      toast.error('No ChatGPT links saved yet to share.');
-      return;
-    }
-    const subjectName = selectedSubject && selectedSubject !== 'all' ? selectedSubject : 'Study Notes';
-    let message = `*NOTEX — ${subjectName} ChatGPT Study Links*\n\n`;
-    gptNotes.forEach((n, idx) => {
-      message += `${idx + 1}. *${n.title}* (${n.subject})\n🔗 ${n.chatGptUrl}\n\n`;
-    });
-    message += `_Organized in NOTEX Vault_`;
-    
-    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-  };
+  const displayedNotes = notes;
 
   const viewTabs = [
     { id: 'folders', label: 'Folders', icon: FolderTree },
@@ -109,8 +84,6 @@ export const NotesPage = ({
         onSortChange={onSortChange}
         showFavoritesOnly={showFavoritesOnly}
         onToggleFavoritesOnly={onToggleFavoritesOnly}
-        showGptOnly={showGptOnly}
-        onToggleGptOnly={() => setShowGptOnly(!showGptOnly)}
         totalResults={displayedNotes.length}
       />
 

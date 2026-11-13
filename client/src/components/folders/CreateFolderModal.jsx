@@ -99,7 +99,12 @@ export const CreateFolderModal = ({
           >
             <option value="">Root (Top-Level Subject Folder)</option>
             {folders
-              .filter(f => !initialFolder || (f._id !== initialFolder._id && f.id !== initialFolder.id))
+              .filter((f) => {
+                if (!initialFolder) return true;
+                const fId = f._id || f.id;
+                const initId = initialFolder._id || initialFolder.id;
+                return fId !== initId;
+              })
               .map((f) => {
                 const isSub = !!f.parentId;
                 return (

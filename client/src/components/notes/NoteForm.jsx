@@ -112,17 +112,20 @@ export const NoteForm = ({
     }
   }, [initialData]);
 
+  // Ref to always point to latest handleSubmit without listener churn
+  const handleSubmitRef = useRef(null);
+
   // Keyboard shortcut for Cmd/Ctrl+S to save
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 's') {
         e.preventDefault();
-        handleSubmit(e);
+        handleSubmitRef.current?.(e);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [title, subject, folderId, content, tags, isFavorite, attachments]);
+  }, []);
 
   // When selecting a folder, auto-populate subject if blank or generic
   const handleFolderChange = (e) => {
@@ -148,19 +151,6 @@ export const NoteForm = ({
     if (!title.trim()) {
       errs.title = 'Please enter a note title';
     }
-
-    // Default subject if empty
-    let finalSubject = subject.trim();
-    if (!finalSubject) {
-      if (folderId) {
-        const f = folders.find(item => (item._id || item.id) === folderId);
-        finalSubject = f ? f.name : 'General';
-      } else {
-        finalSubject = 'General';
-      }
-      setSubject(finalSubject);
-    }
-
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -362,7 +352,15 @@ export const NoteForm = ({
     if (e) e.preventDefault();
     if (!validate()) return;
 
-    const finalSubject = subject.trim() || 'General';
+    let finalSubject = subject.trim();
+    if (!finalSubject) {
+      if (folderId) {
+        const chosenFolder = folders.find((f) => (f._id || f.id) === folderId);
+        finalSubject = chosenFolder ? chosenFolder.name : 'General';
+      } else {
+        finalSubject = 'General';
+      }
+    }
 
     onSave({
       title: title.trim(),
@@ -375,6 +373,8 @@ export const NoteForm = ({
       attachments
     });
   };
+
+  handleSubmitRef.current = handleSubmit;
 
   const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
 
@@ -566,7 +566,7 @@ export const NoteForm = ({
                       </div>
                       <div>
                         <p className="font-bold text-emerald-900">Add Link Block</p>
-                        <p className="text-[10px] text-emerald-700 font-normal">ChatGPT, docs, web link</p>
+                        <p className="text-[10px] text-emerald-700 font-normal">Docs, articles, web links</p>
                       </div>
                     </button>
                   </div>
@@ -935,7 +935,7 @@ export const NoteForm = ({
           setLinkTitle('');
         }}
         title="Attach Link Block"
-        description="Attach a web resource, ChatGPT thread, YouTube lecture, or documentation link."
+        description="Attach a web resource, article, lecture, or documentation link."
         maxWidth="max-w-lg"
       >
         <form onSubmit={handleAddLinkBlock} className="space-y-4">
@@ -976,16 +976,11 @@ export const NoteForm = ({
             </div>
             <input
               type="text"
-              placeholder="https://chatgpt.com/share/... or https://..."
+              placeholder="https://example.com/docs or link..."
               value={linkUrl}
               onChange={(e) => {
                 const val = e.target.value;
                 setLinkUrl(val);
-                if (!linkTitle && val) {
-                  if (val.includes('chatgpt.com') || val.includes('openai.com')) {
-                    setLinkTitle('ChatGPT Conversation Thread');
-                  }
-                }
               }}
               className="w-full rounded-2xl border border-zinc-200 bg-zinc-50/80 px-3.5 py-2.5 text-xs text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-black font-mono"
               autoFocus
@@ -998,7 +993,7 @@ export const NoteForm = ({
             </label>
             <input
               type="text"
-              placeholder="e.g. ChatGPT Proofs & Solutions, Lecture 4 Slides"
+              placeholder="e.g. Lecture 4 Slides, Reference Documentation"
               value={linkTitle}
               onChange={(e) => setLinkTitle(e.target.value)}
               className="w-full rounded-2xl border border-zinc-200 bg-zinc-50/80 px-3.5 py-2.5 text-xs text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-black"

@@ -61,7 +61,7 @@ const safeCleanString = (str = '') => {
     .trim();
 };
 
-export const MarkdownRenderer = ({ content, attachments = [], className = '' }) => {
+export const MarkdownRenderer = ({ content, attachments = [], className = '', isDark = false }) => {
   const [copiedLink, setCopiedLink] = useState(null);
 
   // Auto-detect standalone document filenames in note content and format them as rich attachment links
@@ -186,7 +186,7 @@ export const MarkdownRenderer = ({ content, attachments = [], className = '' }) 
   }
 
   return (
-    <div className={`prose-notex space-y-4 text-zinc-900 ${className}`}>
+    <div className={`prose-notex space-y-4 ${isDark ? 'text-white' : 'text-zinc-900'} ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
@@ -194,7 +194,7 @@ export const MarkdownRenderer = ({ content, attachments = [], className = '' }) 
           blockquote({ node, children, ...props }) {
             return (
               <blockquote 
-                className="my-3 border-l-2 border-zinc-900 bg-zinc-50/90 pl-4 py-2 pr-3 rounded-r-2xl text-zinc-800 text-sm shadow-2xs"
+                className={`my-3 border-l-2 ${isDark ? 'border-indigo-400 bg-zinc-900/90 text-white' : 'border-zinc-900 bg-zinc-50/90 text-zinc-800'} pl-4 py-2 pr-3 rounded-r-2xl text-sm shadow-2xs`}
                 {...props}
               >
                 {children}
@@ -384,24 +384,61 @@ export const MarkdownRenderer = ({ content, attachments = [], className = '' }) 
           },
 
           // Headings
-          h1: ({ children }) => <h1 className="text-xl sm:text-2xl font-bold font-display text-zinc-950 mt-4 mb-2 tracking-tight">{children}</h1>,
-          h2: ({ children }) => <h2 className="text-lg sm:text-xl font-bold font-display text-zinc-950 mt-3 mb-2 tracking-tight">{children}</h2>,
-          h3: ({ children }) => <h3 className="text-base font-semibold font-display text-zinc-950 mt-3 mb-1">{children}</h3>,
+          h1: ({ children }) => (
+            <h1 className={`text-xl sm:text-2xl font-bold font-display ${isDark ? 'text-white' : 'text-zinc-950'} mt-4 mb-2 tracking-tight`}>
+              {children}
+            </h1>
+          ),
+          h2: ({ children }) => (
+            <h2 className={`text-lg sm:text-xl font-bold font-display ${isDark ? 'text-white' : 'text-zinc-950'} mt-3 mb-2 tracking-tight`}>
+              {children}
+            </h2>
+          ),
+          h3: ({ children }) => (
+            <h3 className={`text-base font-semibold font-display ${isDark ? 'text-zinc-100' : 'text-zinc-950'} mt-3 mb-1`}>
+              {children}
+            </h3>
+          ),
           
           // Paragraphs
-          p: ({ children }) => <p className="text-sm sm:text-base text-zinc-800 leading-relaxed font-sans mb-3">{children}</p>,
+          p: ({ children }) => (
+            <p className={`text-sm sm:text-base ${isDark ? 'text-white' : 'text-zinc-800'} leading-relaxed font-sans mb-3`}>
+              {children}
+            </p>
+          ),
 
           // Lists
-          ul: ({ children }) => <ul className="list-disc list-inside space-y-1 my-2 text-sm sm:text-base text-zinc-800">{children}</ul>,
-          ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 my-2 text-sm sm:text-base text-zinc-800">{children}</ol>,
-          li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+          ul: ({ children }) => (
+            <ul className={`list-disc list-inside space-y-1 my-2 text-sm sm:text-base ${isDark ? 'text-white' : 'text-zinc-800'}`}>
+              {children}
+            </ul>
+          ),
+          ol: ({ children }) => (
+            <ol className={`list-decimal list-inside space-y-1 my-2 text-sm sm:text-base ${isDark ? 'text-white' : 'text-zinc-800'}`}>
+              {children}
+            </ol>
+          ),
+          li: ({ children }) => (
+            <li className={`leading-relaxed ${isDark ? 'text-white' : ''}`}>
+              {children}
+            </li>
+          ),
+
+          // Strong / Bold
+          strong: ({ children }) => (
+            <strong className={`font-bold ${isDark ? 'text-white' : 'text-zinc-950'}`}>
+              {children}
+            </strong>
+          ),
 
           // Code Blocks & Inline Code
           code({ inline, className, children, ...props }) {
             const codeString = String(children).replace(/\n$/, '');
             if (inline) {
               return (
-                <code className="px-1.5 py-0.5 rounded-md bg-zinc-100 text-zinc-900 font-mono text-xs border border-zinc-200" {...props}>
+                <code className={`px-1.5 py-0.5 rounded-md font-mono text-xs border ${
+                  isDark ? 'bg-zinc-800 text-indigo-300 border-zinc-700' : 'bg-zinc-100 text-zinc-900 border-zinc-200'
+                }`} {...props}>
                   {children}
                 </code>
               );
@@ -441,13 +478,21 @@ export const MarkdownRenderer = ({ content, attachments = [], className = '' }) 
 
           // Tables
           table: ({ children }) => (
-            <div className="overflow-x-auto my-3 rounded-2xl border border-zinc-200 bg-white">
+            <div className={`overflow-x-auto my-3 rounded-2xl border ${isDark ? 'border-zinc-800 bg-zinc-950' : 'border-zinc-200 bg-white'}`}>
               <table className="w-full text-left text-xs border-collapse">{children}</table>
             </div>
           ),
-          th: ({ children }) => <th className="p-2.5 bg-zinc-100 font-bold text-zinc-900 border-b border-zinc-200">{children}</th>,
-          td: ({ children }) => <td className="p-2.5 border-b border-zinc-100 text-zinc-700">{children}</td>,
-          hr: () => <hr className="my-4 border-zinc-200" />
+          th: ({ children }) => (
+            <th className={`p-2.5 font-bold border-b ${isDark ? 'bg-zinc-900 text-white border-zinc-800' : 'bg-zinc-100 text-zinc-900 border-zinc-200'}`}>
+              {children}
+            </th>
+          ),
+          td: ({ children }) => (
+            <td className={`p-2.5 border-b ${isDark ? 'border-zinc-800 text-zinc-100' : 'border-zinc-100 text-zinc-700'}`}>
+              {children}
+            </td>
+          ),
+          hr: () => <hr className={`my-4 ${isDark ? 'border-zinc-800' : 'border-zinc-200'}`} />
         }}
       >
         {processedContent}

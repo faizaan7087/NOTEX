@@ -27,6 +27,7 @@
     "googleapis": "^181.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.5",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "pdf-parse": "^2.4.5"
   }
 }

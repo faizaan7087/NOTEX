@@ -34,6 +34,18 @@ export const BookmarkChatModal = ({
   const [tags, setTags] = useState('chatgpt, ai-answers');
   const [loading, setLoading] = useState(false);
 
+  // Sync modal state when opened from different locations (folders, subjects)
+  React.useEffect(() => {
+    if (isOpen) {
+      setFolderId(currentFolderId || '');
+      if (initialSubject) {
+        setSubject(initialSubject);
+      } else if (subjects.length > 0 && !subject) {
+        setSubject(subjects[0]?.name || subjects[0] || '');
+      }
+    }
+  }, [isOpen, currentFolderId, initialSubject, subjects]);
+
   // Validate if input looks like a valid ChatGPT or AI chat link
   const isGptLink = chatGptUrl.includes('chatgpt.com') || 
                     chatGptUrl.includes('openai.com') || 

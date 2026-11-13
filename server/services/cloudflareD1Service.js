@@ -184,13 +184,31 @@ class CloudflareD1Service {
         updatedAt TEXT NOT NULL
       );`,
 
+      // Reminders table
+      `CREATE TABLE IF NOT EXISTS reminders (
+        id TEXT PRIMARY KEY,
+        userId TEXT NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT DEFAULT '',
+        dueDate TEXT NOT NULL,
+        priority TEXT DEFAULT 'medium',
+        subject TEXT DEFAULT '',
+        noteId TEXT DEFAULT NULL,
+        isCompleted INTEGER DEFAULT 0,
+        notified INTEGER DEFAULT 0,
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL
+      );`,
+
       // Indexes for fast querying
       `CREATE INDEX IF NOT EXISTS idx_folders_user ON folders(userId);`,
       `CREATE INDEX IF NOT EXISTS idx_folders_parent ON folders(parentId);`,
       `CREATE INDEX IF NOT EXISTS idx_notes_user ON notes(userId);`,
       `CREATE INDEX IF NOT EXISTS idx_notes_folder ON notes(folderId);`,
       `CREATE INDEX IF NOT EXISTS idx_notes_subject ON notes(subject);`,
-      `CREATE INDEX IF NOT EXISTS idx_share_code ON share_links(shareCode);`
+      `CREATE INDEX IF NOT EXISTS idx_share_code ON share_links(shareCode);`,
+      `CREATE INDEX IF NOT EXISTS idx_reminders_user ON reminders(userId);`,
+      `CREATE INDEX IF NOT EXISTS idx_reminders_due ON reminders(dueDate);`
     ];
 
     for (const sql of schemaQueries) {

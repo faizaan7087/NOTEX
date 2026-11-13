@@ -7,7 +7,8 @@ const { connectDB, getDBStatus } = require('./config/db');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 const { APP_CONFIG, APP_NAME } = require('./config/constants');
 
-// Load environment variables
+// Load environment variables (prefer root .env)
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 dotenv.config();
 
 // Connect to Database (with automatic local file fallback)
@@ -15,12 +16,26 @@ connectDB();
 
 const app = express();
 
+// Disable ETag generation to prevent 304 Not Modified empty responses on API data
+app.set('etag', false);
+
 // Global Middlewares
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Prevent caching on all API routes so clients always get fresh data
+app.use('/api', (req, res, next) => {
+  res.set({
+    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+    'Surrogate-Control': 'no-store'
+  });
+  next();
+});
 
 // Body parsers
 app.use(express.json({ limit: '50mb' }));
@@ -49,12 +64,14 @@ const folderRouter = require('./routes/folderRoutes');
 const noteRouter = require('./routes/noteRoutes');
 const shareRouter = require('./routes/shareRoutes');
 const xmlRouter = require('./routes/xmlRoutes');
+const reminderRouter = require('./routes/reminderRoutes');
 
 app.use(['/api/auth', '/auth'], authRouter);
 app.use(['/api/folders', '/folders'], folderRouter);
 app.use(['/api/notes', '/notes'], noteRouter);
 app.use(['/api/share', '/share'], shareRouter);
 app.use(['/api/xml', '/xml'], xmlRouter);
+app.use(['/api/reminders', '/reminders'], reminderRouter);
 
 // Standalone subjects endpoint
 app.get(['/api/subjects', '/subjects'], require('./middleware/authMiddleware').protect, require('./controllers/noteController').getSubjects);
@@ -96,7 +113,7 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5001;
 
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV !== 'test' && require.main === module) {
   app.listen(PORT, () => {
     console.log(`=============================================`);
     console.log(`🚀 NOTEX Server running in ${process.env.NODE_ENV || 'development'} mode`);

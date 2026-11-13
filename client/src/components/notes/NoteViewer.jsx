@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Modal } from '../ui/modal';
@@ -10,17 +11,19 @@ import {
   FileCode2, 
   Edit3, 
   Trash2, 
-  Star,
-  Paperclip,
-  FileText,
-  Download,
-  ExternalLink,
-  Eye,
-  Maximize2,
-  Bot,
-  Link as LinkIcon,
-  Globe,
-  X
+  Star, 
+  Paperclip, 
+  FileText, 
+  Download, 
+  ExternalLink, 
+  Eye, 
+  Maximize2, 
+  Bot, 
+  Link as LinkIcon, 
+  Globe, 
+  X, 
+  Sparkles,
+  Layers
 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import { MarkdownRenderer } from './MarkdownRenderer';
@@ -39,13 +42,21 @@ export const NoteViewer = ({
   onEdit,
   onDelete,
   onExportXML,
-  onClose
+  onClose,
+  onOpenAI
 }) => {
+  const navigate = useNavigate();
   const toast = useToast();
   const [copied, setCopied] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
 
   if (!note) return null;
+
+  const handleOpenVisualLearning = () => {
+    onClose?.();
+    const noteId = note._id || note.id;
+    navigate(`/arex?noteId=${noteId}`);
+  };
 
   const handleCopy = () => {
     const textToCopy = `Title: ${note.title}\nSubject: ${note.subject}\nTags: ${(note.tags || []).join(', ')}\n\n${note.content}`;
@@ -117,6 +128,28 @@ export const NoteViewer = ({
 
             {/* Quick Toolbar */}
             <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={handleOpenVisualLearning}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow-sm cursor-pointer border border-indigo-400/30"
+                title="Open in NOTEX AI Visual Learning Workspace"
+              >
+                <Layers className="w-3.5 h-3.5 text-indigo-200" />
+                <span>Visual Canvas AI</span>
+              </button>
+
+              {onOpenAI && (
+                <button
+                  type="button"
+                  onClick={() => onOpenAI(note)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-950 text-white hover:bg-black text-xs font-bold transition-all shadow-2xs cursor-pointer border border-zinc-800"
+                  title="Learn with Arex on Interactive Whiteboard"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400 fill-amber-400/20" />
+                  <span>Ask Arex</span>
+                </button>
+              )}
+
               <button
                 type="button"
                 onClick={handleCopy}

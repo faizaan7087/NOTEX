@@ -203,13 +203,14 @@ const deleteFolder = async (req, res) => {
       console.warn('[Google Drive Folder Delete Dispatch Info]:', driveDelErr.message);
     }
 
-    const folderId = req.params.id;
+    const folderId = String(req.params.id);
 
     // Find all subfolder IDs recursively
     const allUserFolders = await Folder.find({ userId: req.user.id });
     const getChildFolderIds = (parentId) => {
-      const children = allUserFolders.filter(f => f.parentId === parentId);
-      let ids = children.map(c => c._id || c.id);
+      const parentIdStr = String(parentId);
+      const children = allUserFolders.filter(f => String(f.parentId) === parentIdStr);
+      let ids = children.map(c => String(c._id || c.id));
       children.forEach(c => {
         ids = ids.concat(getChildFolderIds(c._id || c.id));
       });
@@ -226,7 +227,7 @@ const deleteFolder = async (req, res) => {
     // Unassign notes from deleted folders (or delete notes if cascade requested)
     const notes = await Note.find({ userId: req.user.id });
     for (const note of notes) {
-      if (targetFolderIds.includes(note.folderId)) {
+      if (note.folderId && targetFolderIds.includes(String(note.folderId))) {
         await Note.findByIdAndUpdate(note._id || note.id, { folderId: null });
       }
     }
