@@ -55,7 +55,7 @@ import {
  * the interface stays quiet — no hard contrast, no glow, nothing shouting.
  */
 
-type Screen = 'ready' | 'topic' | 'connecting' | 'live' | 'ended' | 'mic-error';
+type Screen = 'topic' | 'connecting' | 'live' | 'ended' | 'mic-error';
 
 // Modern Black and White Monochrome Palette with Colored Accent Elements
 const C = {
@@ -310,42 +310,7 @@ function FormattedChatMessage({ text, isMine }: { text: string; isMine?: boolean
 }
 
 // ---------------------------------------------------------------------------
-// 1. READY
-// ---------------------------------------------------------------------------
-
-function ReadyScreen({ onStart, onOpen }: { onStart: () => void; onOpen: (c: Chat) => void }) {
-  const t = useT();
-  return (
-    <Shell>
-      <Mark />
-      <p className="font-mono text-[10px] tracking-[0.22em] uppercase" style={{ color: C.inkSoft }}>
-        {t.tagline}
-      </p>
-      <h1 className="mt-2.5 text-[32px] font-bold" style={{ color: C.ink }}>
-        Agent Arex
-      </h1>
-      <p
-        className="mt-3 mb-9 max-w-lg text-center text-[16px] leading-relaxed"
-        style={{ color: C.inkSoft }}
-      >
-        {t.readyBody}
-      </p>
-
-      <div className="mb-4 w-full">
-        <LanguagePicker />
-      </div>
-      <PrimaryButton onClick={onStart}>{t.start}</PrimaryButton>
-
-      <p className="mt-4 text-[12px]" style={{ color: C.inkSoft }}>
-        {t.micNote}
-      </p>
-      <ChatHistory onOpen={onOpen} />
-    </Shell>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// 2. CONNECTING
+// 1. CONNECTING
 // ---------------------------------------------------------------------------
 
 function ConnectingScreen() {
@@ -1459,43 +1424,42 @@ function LiveScreen({
 
         function NovaViewInner() {
   const session = useSessionContext();
-        const liveAgent = useAgent();
-        const {connectionState, isConnected, start, end} = session;
-        const {messages} = useSessionMessages(session);
+  const { connectionState, isConnected, start, end } = session;
+  const { messages } = useSessionMessages(session);
 
         const [micError, setMicError] = useState<MicError | null>(null);
-        const [choosingTopic, setChoosingTopic] = useState(false);
-        const [initialTopic, setInitialTopic] = useState<string | null>(null);
-        const [connectionError, setConnectionError] = useState<string | null>(null);
-        const starting = useRef(false);
-        const [hasEnded, setHasEnded] = useState(false);
-        const [turns, setTurns] = useState(0);
-        const [canvas, setCanvas] = useState<CanvasPayload[]>([]);
-        // Day 9: which agent currently holds the conversation. The backend pushes an
-        // 'agent' frame on every handoff, so the UI changes with the voice.
-        const [handoffs, setHandoffs] = useState<
+  const [initialTopic, setInitialTopic] = useState<string | null>(null);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const starting = useRef(false);
+  const [isStartingClass, setIsStartingClass] = useState(false);
+  const [hasEnded, setHasEnded] = useState(false);
+  const [turns, setTurns] = useState(0);
+  const [canvas, setCanvas] = useState<CanvasPayload[]>([]);
+  // Day 9: which agent currently holds the conversation. The backend pushes an
+  // 'agent' frame on every handoff, so the UI changes with the voice.
+  const [handoffs, setHandoffs] = useState<
     { id: string; from: string; to: string; reason: string; at: number }[]
   >([]);
-        const [agentId, setAgentId] = useState<{
+  const [agentId, setAgentId] = useState<{
     id: string;
-        name: string;
-        role: string;
-        tint: string;
-        lang: string;
-  }>({id: 'nova', name: 'Arex', role: 'Teacher', tint: C.clay, lang: 'English' });
-        const wasConnected = useRef(false);
+    name: string;
+    role: string;
+    tint: string;
+    lang: string;
+  }>({ id: 'nova', name: 'Arex', role: 'Teacher', tint: C.clay, lang: 'English' });
+  const wasConnected = useRef(false);
   const [chatId, setChatId] = useState(() => `c${Date.now()}`);
-        const [resume, setResume] = useState<Chat | null>(null);
-        const goingHome = useRef(false);
-        // "New chat" mid-class: end this session, then go straight into a fresh one.
-        const restarting = useRef(false);
+  const [resume, setResume] = useState<Chat | null>(null);
+  const goingHome = useRef(false);
+  // "New chat" mid-class: end this session, then go straight into a fresh one.
+  const restarting = useRef(false);
 
   // The agent pushes code and flowcharts here over the data channel while it
   // talks. Anything unparseable is dropped rather than crashing the view.
   useDataChannel('nova-canvas', (msg) => {
     try {
       const payload = JSON.parse(new TextDecoder().decode(msg.payload)) as CanvasPayload;
-        if (payload.kind === 'agent') {
+      if (payload.kind === 'agent') {
         // Record why the conversation moved, so the student can see it rather
         // than wondering why a different voice is suddenly talking.
         if (payload.from && payload.from !== payload.id) {
@@ -1512,164 +1476,196 @@ function LiveScreen({
         }
         setAgentId({
           id: payload.id,
-        name: payload.name,
-        role: payload.role,
-        tint: payload.tint,
-        lang: payload.lang,
+          name: payload.name,
+          role: payload.role,
+          tint: payload.tint,
+          lang: payload.lang,
         });
         return;
       }
       // Cards accumulate so a flowchart and its code stay on screen together.
       setCanvas((prev) => (payload.kind === 'clear' ? [] : [...prev, payload]));
     } catch {
-          /* ignore malformed frames */
-        }
+      /* ignore malformed frames */
+    }
   });
 
   // Remember the transcript length before teardown — messages are cleared on
   // disconnect, so the ended screen would otherwise always read zero.
   useEffect(() => {
     if (isConnected) {
-          wasConnected.current = true;
-        setTurns(messages.length);
+      wasConnected.current = true;
+      setTurns(messages.length);
     } else if (wasConnected.current) {
-          wasConnected.current = false;
-        if (restarting.current) {
-          restarting.current = false;
-        void handleStartRef.current();
+      wasConnected.current = false;
+      if (restarting.current) {
+        restarting.current = false;
+        setInitialTopic(null);
+        setResume(null);
+        setHasEnded(false);
       } else if (goingHome.current) {
-          goingHome.current = false; // straight back to the start screen
+        goingHome.current = false;
+        setInitialTopic(null);
+        setResume(null);
+        setHasEnded(false);
       } else {
-          setHasEnded(true);
+        setHasEnded(true);
       }
     }
   }, [isConnected, messages.length]);
 
-        // Start a class: a brand-new chat, or (with `chat`) continue an old one.
-        const startClass = useCallback(
-    async (chat: Chat | null) => {
+  // Start a class: a brand-new chat, or (with `chat`) continue an old one.
+  const startClass = useCallback(
+    async (chat: Chat | null, topic: string | null = null) => {
       if (starting.current) return;
-        starting.current = true;
-        setMicError(null);
-        setConnectionError(null);
-        const err = await requestMic();
-        if (err) {
-          setMicError(err);
+      starting.current = true;
+      setIsStartingClass(true);
+      setMicError(null);
+      setConnectionError(null);
+      const err = await requestMic();
+      if (err) {
+        setMicError(err);
         starting.current = false;
+        setIsStartingClass(false);
         return;
       }
-        setHasEnded(false);
-        setInitialTopic(null);
-        setChoosingTopic(!chat);
-        setResume(chat);
-        setChatId(chat ? chat.id : `c${Date.now()}`);
-        // The token route reads this to tell the agent to wait for the history.
-        document.cookie = `nova_resume=${chat ? 1 : 0}; path=/; max-age=60; samesite=lax`;
-        document.cookie = `nova_onboarding=${chat ? 0 : 1}; path=/; max-age=60; samesite=lax`;
-        setCanvas([]);
-        setHandoffs([]);
-        setAgentId({
-          id: 'nova',
+      setHasEnded(false);
+      setInitialTopic(topic);
+      setResume(chat);
+      setChatId(chat ? chat.id : `c${Date.now()}`);
+      // The token route reads this to tell the agent to wait for the history.
+      document.cookie = `nova_resume=${chat ? 1 : 0}; path=/; max-age=60; samesite=lax`;
+      document.cookie = `nova_onboarding=${chat ? 0 : 1}; path=/; max-age=60; samesite=lax`;
+      setCanvas([]);
+      setHandoffs([]);
+      setAgentId({
+        id: 'nova',
         name: 'Arex',
         role: 'Teacher',
         tint: C.clay,
         lang: 'English',
       });
-        try {
-          await start({
-            tracks: {
-              microphone: {
-                enabled: true,
-                publishOptions: {
-                  preConnectBuffer: true,
-                  stopMicTrackOnMute: true,
-                },
+      try {
+        await start({
+          tracks: {
+            microphone: {
+              enabled: true,
+              publishOptions: {
+                preConnectBuffer: true,
+                stopMicTrackOnMute: true,
               },
             },
-          });
+          },
+        });
       } catch {
-          setConnectionError('Could not join the classroom. Please try again.');
+        setConnectionError('Could not join the classroom. Please try again.');
       } finally {
-          starting.current = false;
+        starting.current = false;
+        setIsStartingClass(false);
       }
     },
-        [start]
-        );
-  const handleStart = useCallback(() => startClass(null), [startClass]);
-  const handleContinue = useCallback((chat: Chat) => startClass(chat), [startClass]);
+    [start]
+  );
 
-        const handleStartRef = useRef(handleStart);
-        handleStartRef.current = handleStart;
+  const handleChooseTopic = useCallback(
+    (topic: string) => {
+      void startClass(null, topic);
+    },
+    [startClass]
+  );
+
+  const handleContinue = useCallback(
+    (chat: Chat) => {
+      void startClass(chat, null);
+    },
+    [startClass]
+  );
 
   const handleEnd = useCallback(async () => {
-          await end();
+    await end();
   }, [end]);
 
   const handleHome = useCallback(async () => {
-          goingHome.current = true;
-        setChoosingTopic(false);
-        setInitialTopic(null);
-        setConnectionError(null);
-        await end();
+    goingHome.current = true;
+    setInitialTopic(null);
+    setResume(null);
+    setConnectionError(null);
+    setHasEnded(false);
+    await end();
   }, [end]);
 
   const handleTopicError = useCallback(() => {
-          setInitialTopic(null);
-        setChoosingTopic(true);
-        setConnectionError('Could not send your topic. Please reconnect and try again.');
+    setConnectionError('Could not send your topic. Please reconnect and try again.');
   }, []);
 
-  const retryConnection = useCallback(async () => {
-          goingHome.current = true;
-        await end();
-        await startClass(null);
-  }, [end, startClass]);
-
-  useEffect(() => {
-    if (!choosingTopic) return;
-    const timer = setTimeout(() => setConnectionError('This classroom has been waiting a while. Reconnect to start your lesson.'), 150_000);
-    return () => clearTimeout(timer);
-  }, [choosingTopic]);
-
   const handleNewChat = useCallback(async () => {
-          restarting.current = true;
-        await end();
+    restarting.current = true;
+    setInitialTopic(null);
+    setResume(null);
+    setConnectionError(null);
+    setHasEnded(false);
+    await end();
   }, [end]);
 
-        let screen: Screen = 'ready';
-        if (micError) screen = 'mic-error';
-        else if (choosingTopic) screen = 'topic';
-        else if (isConnected) screen = 'live';
-        else if (connectionState === ConnectionState.Connecting) screen = 'connecting';
-        else if (hasEnded) screen = 'ended';
+  let screen: Screen = 'topic';
+  if (micError) screen = 'mic-error';
+  else if (isConnected) screen = 'live';
+  else if (isStartingClass || connectionState === ConnectionState.Connecting) screen = 'connecting';
+  else if (hasEnded) screen = 'ended';
 
-        return (
-        <AnimatePresence mode="wait">
-          <motion.div key={screen} {...FADE}>
-            {screen === 'ready' && <ReadyScreen onStart={handleStart} onOpen={handleContinue} />}
-            {screen === 'topic' && <TopicPicker connected={isConnected && liveAgent.isConnected} error={connectionError}
-              onChoose={(topic) => { setInitialTopic(topic); setChoosingTopic(false); }}
-              onCancel={handleHome} onRetry={retryConnection} />}
-            {screen === 'connecting' && <ConnectingScreen />}
-            {screen === 'live' && (
-              <LiveScreen
-                chatId={chatId}
-                initialTopic={initialTopic}
-                onTopicError={handleTopicError}
-                resume={resume}
-                onHome={handleHome}
-                onNewChat={handleNewChat}
-                onEnd={handleEnd}
-                canvas={canvas}
-                agent={agentId}
-                handoffs={handoffs}
-              />
-            )}
-            {screen === 'ended' && (
-              <EndedScreen turns={turns} onRestart={handleStart} onOpen={handleContinue} />
-            )}
-            {screen === 'mic-error' && <MicErrorScreen kind={micError!} onRetry={handleStart} />}
-          </motion.div>
-        </AnimatePresence>
-        );
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div key={screen} {...FADE}>
+        {screen === 'topic' && (
+          <TopicPicker
+            error={connectionError}
+            onChoose={handleChooseTopic}
+            onRetry={() => {
+              if (initialTopic) void handleChooseTopic(initialTopic);
+            }}
+          >
+            <div className="mt-8 pt-6 border-t border-[#27272A] w-full flex flex-col gap-4">
+              <LanguagePicker />
+              <ChatHistory onOpen={handleContinue} />
+            </div>
+          </TopicPicker>
+        )}
+        {screen === 'connecting' && <ConnectingScreen />}
+        {screen === 'live' && (
+          <LiveScreen
+            chatId={chatId}
+            initialTopic={initialTopic}
+            onTopicError={handleTopicError}
+            resume={resume}
+            onHome={handleHome}
+            onNewChat={handleNewChat}
+            onEnd={handleEnd}
+            canvas={canvas}
+            agent={agentId}
+            handoffs={handoffs}
+          />
+        )}
+        {screen === 'ended' && (
+          <EndedScreen
+            turns={turns}
+            onRestart={() => {
+              setHasEnded(false);
+              setInitialTopic(null);
+              setResume(null);
+            }}
+            onOpen={handleContinue}
+          />
+        )}
+        {screen === 'mic-error' && (
+          <MicErrorScreen
+            kind={micError!}
+            onRetry={() => {
+              setMicError(null);
+              if (initialTopic) void startClass(null, initialTopic);
+            }}
+          />
+        )}
+      </motion.div>
+    </AnimatePresence>
+  );
 }

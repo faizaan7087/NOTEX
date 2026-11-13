@@ -279,9 +279,14 @@ export const Navbar = ({
                           navigateTo('settings');
                           setDropdownOpen(false);
                         }}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-zinc-800 hover:text-black hover:bg-zinc-100 rounded-xl transition-colors text-left"
+                        className={cn(
+                          "w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-xl transition-colors text-left",
+                          isAIPage
+                            ? "text-zinc-200 hover:text-white hover:bg-zinc-800"
+                            : "text-zinc-800 hover:text-black hover:bg-zinc-100"
+                        )}
                       >
-                        <SettingsIcon className="w-4 h-4 text-zinc-500" />
+                        <SettingsIcon className={cn("w-4 h-4", isAIPage ? "text-zinc-400" : "text-zinc-500")} />
                         <span>Settings &amp; Drive</span>
                       </button>
 
@@ -290,7 +295,12 @@ export const Navbar = ({
                           logout();
                           setDropdownOpen(false);
                         }}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-colors text-left"
+                        className={cn(
+                          "w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-xl transition-colors text-left",
+                          isAIPage
+                            ? "text-rose-400 hover:text-rose-300 hover:bg-rose-950/40"
+                            : "text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                        )}
                       >
                         <LogOut className="w-4 h-4" />
                         <span>Log Out</span>

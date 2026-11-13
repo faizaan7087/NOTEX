@@ -199,7 +199,7 @@ export const Sidebar = ({
                       ? "justify-center p-2.5" 
                       : "justify-between px-3 py-2 text-xs font-semibold",
                     isActive
-                      ? (isAIPage ? "bg-white text-zinc-950 shadow-md font-bold" : "bg-black text-white shadow-xs")
+                      ? (isAIPage ? "bg-white text-zinc-950 shadow-md font-bold" : "bg-zinc-100 text-zinc-950 border border-zinc-200/80 shadow-2xs font-bold")
                       : (isAIPage ? "text-zinc-400 hover:text-white hover:bg-zinc-850" : "text-zinc-600 hover:text-black hover:bg-zinc-100/80")
                   )}
                   title={isCollapsed ? item.label : undefined}
@@ -215,7 +215,7 @@ export const Sidebar = ({
                       className={cn(
                         "text-[10px] font-bold px-2 py-0.5 rounded-full",
                         isActive
-                          ? (isAIPage ? "bg-zinc-200 text-zinc-900" : "bg-white/20 text-white")
+                          ? (isAIPage ? "bg-zinc-200 text-zinc-900" : "bg-zinc-200 text-zinc-900 font-bold")
                           : (isAIPage ? "bg-zinc-800 text-zinc-300 border border-zinc-700" : "bg-zinc-100 text-zinc-700 border border-zinc-200")
                       )}
                     >
@@ -475,12 +475,17 @@ export const Sidebar = ({
                 ? "justify-center p-2.5" 
                 : "gap-2.5 px-3 py-2 text-xs font-semibold",
               activePage === 'settings'
-                ? (isAIPage ? "bg-white text-zinc-950 shadow-md font-bold" : "bg-black text-white shadow-xs")
+                ? (isAIPage ? "bg-white text-zinc-950 shadow-md font-bold" : "bg-zinc-100 text-zinc-950 border border-zinc-200/80 shadow-2xs font-bold")
                 : (isAIPage ? "text-zinc-400 hover:text-white hover:bg-zinc-850" : "text-zinc-600 hover:text-black hover:bg-zinc-100/80")
             )}
             title={isCollapsed ? 'Settings' : undefined}
           >
-            <SettingsIcon className="w-4 h-4 text-zinc-500 shrink-0" />
+            <SettingsIcon className={cn(
+              "w-4 h-4 shrink-0 transition-colors",
+              activePage === 'settings'
+                ? (isAIPage ? "text-zinc-950" : "text-zinc-950")
+                : "text-zinc-500"
+            )} />
             {!isCollapsed && <span>Settings</span>}
           </button>
         </div>

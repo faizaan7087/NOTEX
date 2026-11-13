@@ -5,6 +5,7 @@ import { useToast } from '../../context/ToastContext';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { APP_NAME, APP_CONFIG } from '../../constants/app';
+import notexLogoTransparent from '../../assets/notex-logo-transparent.png';
 import { 
   User, 
   Mail, 
@@ -120,8 +121,12 @@ export const RegisterForm = ({ onSwitchToLogin, onToggleMode }) => {
     <div className="w-full max-w-md mx-auto">
       {/* Brand Header */}
       <div className="text-center mb-6">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-black text-white p-0.5 shadow-lg mb-4 animate-float">
-          <GraduationCap className="w-7 h-7" />
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 animate-float">
+          <img
+            src={notexLogoTransparent}
+            alt="NOTEX Logo"
+            className="w-full h-full object-contain drop-shadow-md"
+          />
         </div>
         <h2 className="text-2xl sm:text-3xl font-extrabold text-zinc-950 font-display tracking-tight">
           Create Student Account
